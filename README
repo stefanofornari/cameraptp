@@ -1,0 +1,45 @@
+                      Camera PTP v0.0
+                Copyright 2010, Stefano Fornari
+
+Camera PTP is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Camera PTP is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with Camera Control. If not, see <http://www.gnu.org/licenses/>.
+
+
+Camera PTP
+----------
+
+Camera PTP is originally developed to control my Canon EOS 1000D.
+It is not intended to be a generic camera control program, but if
+people will help me with other cameras, I will use such help to
+support more devices.
+
+Supported OS
+------------
+For now Camera Control supports Linux only. Support for other
+operating system may be added in the future depending  on people
+help.
+
+JPhoto
+------
+Camera PTP is a derivative work of JPhoto (http://jphoto.sourceforge.net/).
+
+Disclaimers
+-----------
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
