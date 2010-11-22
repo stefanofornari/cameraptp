@@ -86,35 +86,66 @@ public class Command extends ParamVector {
         put32(param3);
     }
     // allegedly some commands could have up to five params
-    public static final int GetDeviceInfo        = 0x1001;
-    public static final int OpenSession          = 0x1002;
-    public static final int CloseSession         = 0x1003;
-    public static final int GetStorageIDs        = 0x1004;
-    public static final int GetStorageInfo       = 0x1005;
-    public static final int GetNumObjects        = 0x1006;
-    public static final int GetObjectHandles     = 0x1007;
-    public static final int GetObjectInfo        = 0x1008;
-    public static final int GetObject            = 0x1009;
-    public static final int GetThumb             = 0x100a;
-    public static final int DeleteObject         = 0x100b;
-    public static final int SendObjectInfo       = 0x100c;
-    public static final int SendObject           = 0x100d;
-    public static final int InitiateCapture      = 0x100e;
-    public static final int FormatStore          = 0x100f;
-    public static final int ResetDevice          = 0x1010;
-    public static final int SelfTest             = 0x1011;
-    public static final int SetObjectProtection  = 0x1012;
-    public static final int PowerDown            = 0x1013;
-    public static final int GetDevicePropDesc    = 0x1014;
-    public static final int GetDevicePropValue   = 0x1015;
-    public static final int SetDevicePropValue   = 0x1016;
-    public static final int ResetDevicePropValue = 0x1017;
-    public static final int TerminateOpenCapture = 0x1018;
-    public static final int MoveObject           = 0x1019;
-    public static final int CopyObject           = 0x101a;
-    public static final int GetPartialObject     = 0x101b;
-    public static final int InitiateOpenCapture  = 0x101c;
-    public static final int DevicePropValueEx    = 0x9110;
+    public static final int GetDeviceInfo          = 0x1001;
+    public static final int OpenSession            = 0x1002;
+    public static final int CloseSession           = 0x1003;
+    public static final int GetStorageIDs          = 0x1004;
+    public static final int GetStorageInfo         = 0x1005;
+    public static final int GetNumObjects          = 0x1006;
+    public static final int GetObjectHandles       = 0x1007;
+    public static final int GetObjectInfo          = 0x1008;
+    public static final int GetObject              = 0x1009;
+    public static final int GetThumb               = 0x100a;
+    public static final int DeleteObject           = 0x100b;
+    public static final int SendObjectInfo         = 0x100c;
+    public static final int SendObject             = 0x100d;
+    public static final int InitiateCapture        = 0x100e;
+    public static final int FormatStore            = 0x100f;
+    public static final int ResetDevice            = 0x1010;
+    public static final int SelfTest               = 0x1011;
+    public static final int SetObjectProtection    = 0x1012;
+    public static final int PowerDown              = 0x1013;
+    public static final int GetDevicePropDesc      = 0x1014;
+    public static final int GetDevicePropValue     = 0x1015;
+    public static final int SetDevicePropValue     = 0x1016;
+    public static final int ResetDevicePropValue   = 0x1017;
+    public static final int TerminateOpenCapture   = 0x1018;
+    public static final int MoveObject             = 0x1019;
+    public static final int CopyObject             = 0x101a;
+    public static final int GetPartialObject       = 0x101b;
+    public static final int InitiateOpenCapture    = 0x101c;
+    public static final int DsGetStorageIds        = 0x9101;
+    public static final int DsGetStorageInfo       = 0x9102;
+    public static final int DsGetObjectInfo        = 0x9103;
+    public static final int DsGetObject            = 0x9104;
+    public static final int DsDeleteObject         = 0x9105;
+    public static final int DsFormatStore          = 0x9106;
+    public static final int DsGetPartialObject     = 0x9107;
+    public static final int DsGetDeviceInfoEx      = 0x9108;
+    public static final int DsGetObjectInfoEx      = 0x9109;
+    public static final int DsGetThumbEx           = 0x910a;
+    public static final int DsSendPartialObject    = 0x910b;
+    public static final int DsSetObjectProperties  = 0x910c;
+    public static final int DsGetObjectTime        = 0x910d;
+    public static final int DsSetObjectTime        = 0x910e;
+    public static final int DsRemoteRelease        = 0x910f;
+    public static final int DsSetDevicePropValueEx = 0x9110;
+    public static final int DsSendObjectEx         = 0x9111;
+    public static final int DsCreageObject         = 0x9112;
+    public static final int DsGetRemoteMode        = 0x9113;
+    public static final int DsSetRemoteMode        = 0x9114;
+    public static final int DsGetEvent             = 0x9116;
+    public static final int DsGetTransferComplete  = 0x9117;
+    public static final int DsCancelTransfer       = 0x9118;
+    public static final int DsResetTransfer        = 0x9119;
+    public static final int DsPCHDDCapacity        = 0x911a;
+    public static final int DsSetUILock            = 0x911b;
+    public static final int DsResetUILock          = 0x911c;
+    public static final int DsKeepDeviceOn         = 0x911d;
+    public static final int DsSetNullPacketmode    = 0x911e;
+    public static final int DsUpdateFirmware       = 0x911f;
+    public static final int DsFapiMessageTx        = 0x91fe;
+    public static final int DsFapiMessageRx        = 0x91ff;
 
     public String getCodeName(int code) {
         return factory.getOpcodeString(code);
@@ -122,73 +153,68 @@ public class Command extends ParamVector {
 
     static String _getOpcodeString(int code) {
         switch (code) {
-            case GetDeviceInfo:
-                return "GetDeviceInfo";
-            case OpenSession:
-                return "OpenSession";
-            case CloseSession:
-                return "CloseSession";
-
-            case GetStorageIDs:
-                return "GetStorageIDs";
-            case GetStorageInfo:
-                return "GetStorageInfo";
-            case GetNumObjects:
-                return "GetNumObjects";
-            case GetObjectHandles:
-                return "GetObjectHandles";
-
-            case GetObjectInfo:
-                return "GetObjectInfo";
-            case GetObject:
-                return "GetObject";
-            case GetThumb:
-                return "GetThumb";
-            case DeleteObject:
-                return "DeleteObject";
-
-            case SendObjectInfo:
-                return "SendObjectInfo";
-            case SendObject:
-                return "SendObject";
-            case InitiateCapture:
-                return "InitiateCapture";
-            case FormatStore:
-                return "FormatStore";
-
-            case ResetDevice:
-                return "ResetDevice";
-            case SelfTest:
-                return "SelfTest";
-            case SetObjectProtection:
-                return "SetObjectProtection";
-            case PowerDown:
-                return "PowerDown";
-
-            case GetDevicePropDesc:
-                return "GetDevicePropDesc";
-            case GetDevicePropValue:
-                return "GetDevicePropValue";
-            case SetDevicePropValue:
-                return "SetDevicePropValue";
-            case ResetDevicePropValue:
-                return "ResetDevicePropValue";
-
-            case TerminateOpenCapture:
-                return "TerminateOpenCapture";
-            case MoveObject:
-                return "MoveObject";
-            case CopyObject:
-                return "CopyObject";
-            case GetPartialObject:
-                return "GetPartialObject";
-
-            case InitiateOpenCapture:
-                return "InitiateOpenCapture";
-
-            case DevicePropValueEx: 
-                return "DevicePropValueEx";
+            case GetDeviceInfo:          return "GetDeviceInfo";
+            case OpenSession:            return "OpenSession";
+            case CloseSession:           return "CloseSession";
+            case GetStorageIDs:          return "GetStorageIDs";
+            case GetStorageInfo:         return "GetStorageInfo";
+            case GetNumObjects:          return "GetNumObjects";
+            case GetObjectHandles:       return "GetObjectHandles";
+            case GetObjectInfo:          return "GetObjectInfo";
+            case GetObject:              return "GetObject";
+            case GetThumb:               return "GetThumb";
+            case DeleteObject:           return "DeleteObject";
+            case SendObjectInfo:         return "SendObjectInfo";
+            case SendObject:             return "SendObject";
+            case InitiateCapture:        return "InitiateCapture";
+            case FormatStore:            return "FormatStore";
+            case ResetDevice:            return "ResetDevice";
+            case SelfTest:               return "SelfTest";
+            case SetObjectProtection:    return "SetObjectProtection";
+            case PowerDown:              return "PowerDown";
+            case GetDevicePropDesc:      return "GetDevicePropDesc";
+            case GetDevicePropValue:     return "GetDevicePropValue";
+            case SetDevicePropValue:     return "SetDevicePropValue";
+            case ResetDevicePropValue:   return "ResetDevicePropValue";
+            case TerminateOpenCapture:   return "TerminateOpenCapture";
+            case MoveObject:             return "MoveObject";
+            case CopyObject:             return "CopyObject";
+            case GetPartialObject:       return "GetPartialObject";
+            case InitiateOpenCapture:    return "InitiateOpenCapture";
+            case DsSetDevicePropValueEx: return "DsSetDevicePropValueEx";
+            case DsCancelTransfer:       return "DsCancelTransfer";
+            case DsCreageObject:         return "DsCreageObject";
+            case DsDeleteObject:         return "DsDeleteObject";
+            case DsFapiMessageRx:        return "DsFapiMessageRx";
+            case DsFapiMessageTx:        return "DsFapiMessageTx";
+            case DsFormatStore:          return "DsFormatStore";
+            case DsGetDeviceInfoEx:      return "DsGetDeviceInfoEx";
+            case DsGetEvent:             return "DsGetEvent";
+            case DsGetObject:            return "DsGetObject";
+            case DsGetObjectInfo:        return "DsGetObjectInfo";
+            case DsGetObjectInfoEx:      return "DsGetObjectInfoEx";
+            case DsGetObjectTime:        return "DsGetObjectTime";
+            case DsGetPartialObject:     return "DsGetPartialObject";
+            case DsGetRemoteMode:        return "DsGetRemoteMode";
+            case DsGetStorageIds:        return "DsGetStorageIds";
+            case DsGetStorageInfo:       return "DsGetStorageInfo";
+            case DsGetThumbEx:           return "DsGetThumbEx";
+            case DsKeepDeviceOn:         return "DsKeepDeviceOn";
+            case DsPCHDDCapacity:        return "DsPCHDDCapacity";
+            case DsRemoteRelease:        return "DsRemoteRelease";
+            case DsResetUILock:          return "DsResetUILock";
+            case DsResetTransfer:        return "DsResetTransfer";
+            case DsSendObjectEx:         return "DsSendObjectEx";
+            case DsSendPartialObject:    return "DsSendPartialObject";
+            case DsSetNullPacketmode:    return "DsSetNullPacketmode";
+            case DsSetObjectProperties:  return "DsSetObjectProperties";
+            case DsSetObjectTime:        return "DsSetObjectTime";
+            case DsSetRemoteMode:        return "DsSetRemoteMode";
+            case DsSetUILock:            return "DsSetUILock";
+            case DsGetTransferComplete:  return "DsGetTransferComplete";
+            case DsUpdateFirmware:       return "DsUpdateFirmware";
         }
+
         return Container.getCodeString(code);
     }
 }
