@@ -180,7 +180,7 @@ public class Command extends ParamVector {
     public static final int MtpGetObjectPropDesc        = 0x9802;
     public static final int MtpGetObjectPropValue       = 0x9803;
     public static final int MtpSetObjectPropValue       = 0x9804;
-    public static final int MtpGetObjPropList           = 0x9804;
+    public static final int MtpGetObjPropList           = 0x9805;
 
     public String getCodeName(int code) {
         return factory.getOpcodeString(code);
