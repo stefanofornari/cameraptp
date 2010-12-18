@@ -33,8 +33,7 @@ import java.io.PrintStream;
  */
 abstract public class Container extends Buffer
 {
-    // package private
-    NameFactory		factory;
+    protected NameFactory factory;
 
     // get/put object handles (not 0, ~0) using session context
     // Session		session;
@@ -48,14 +47,14 @@ abstract public class Container extends Buffer
     // TOTAL:  12 bytes
     static final int	HDR_LEN = 12;
 
-    Container (byte buf [], NameFactory f)
+    public Container (byte buf [], NameFactory f)
 	{ super (buf, buf.length); factory = f; }
 
-    Container (byte buf [], int len, NameFactory f)
+    public Container (byte buf [], int len, NameFactory f)
 	{ super (buf, len); factory = f; }
     
     // package private
-    void putHeader (int len, int type, int code, int xid)
+    protected void putHeader (int len, int type, int code, int xid)
     {
 	if (offset != 0)
 	    throw new IllegalStateException ();

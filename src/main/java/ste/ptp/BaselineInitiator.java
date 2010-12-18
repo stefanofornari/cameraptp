@@ -43,7 +43,7 @@ import java.util.ArrayList;
  * (as to a digital picture frame), depending on mode support.
  *
  * <p> Note that many of the IOExceptions thrown here are actually
- * going to be <code>usb.core.USBException</code> values.  That may
+ * going to be <code>usb.core.PTPException</code> values.  That may
  * help your application level recovery processing.  You should
  * assume that when any IOException is thrown, your current session
  * has been terminated.
@@ -69,15 +69,14 @@ public class BaselineInitiator extends NameFactory implements Runnable {
     final static boolean DEBUG = false;
     final static boolean TRACE = false;
     
-    private Device                 dev;
-    private UsbInterfaceDescriptor intf;
-    private UsbEndpointDescriptor  in;
-    private int                    inMaxPS;
-    private UsbEndpointDescriptor  out;
-    private UsbEndpointDescriptor  intr;
-    private Session                session;
-    private DeviceInfo             info;
-
+    protected Device                 dev;
+    protected UsbInterfaceDescriptor intf;
+    protected UsbEndpointDescriptor  in;
+    protected int                    inMaxPS;
+    protected UsbEndpointDescriptor  out;
+    protected UsbEndpointDescriptor  intr;
+    protected Session                session;
+    protected DeviceInfo             info;
 
     /**
      * Constructs a class driver object, if the device supports
@@ -87,64 +86,71 @@ public class BaselineInitiator extends NameFactory implements Runnable {
      * @exception IllegalArgumentException if the device has no
      *	Digital Still Imaging Class or PTP interfaces
      */
-    public BaselineInitiator(Device dev) throws USBException {
-        if (dev == null) {
-            throw new IllegalArgumentException();
-        }
-        session = new Session();
-        this.dev = dev;
-        intf = dev.getPTPInterface();
-
-        UsbInterface usbInterface = intf.getUsbInterface();
-
-        if (usbInterface == null) {
-            throw new USBException("No PTP interfaces associated to the device");
-        }
-
-        ArrayList<UsbEndpointDescriptor> endpoints = usbInterface.getAllEndpoints();
-        for (UsbEndpointDescriptor ep: endpoints) {
-            if (ep.isTypeBulk()) {
-                if (ep.isInput()) {
-                    inMaxPS = ep.getMaxPacketSize();
-                    in = ep;
-                } else {
-                    out = ep;
-                }
-            } else if (ep.isTypeInterrupt() && ep.isInput()) {
-                intr = ep;
+    public BaselineInitiator(Device dev) throws PTPException {
+        try {
+            if (dev == null) {
+                throw new IllegalArgumentException();
             }
+            session = new Session();
+            this.dev = dev;
+            intf = dev.getPTPInterface();
+
+            UsbInterface usbInterface = intf.getUsbInterface();
+
+            if (usbInterface == null) {
+                throw new PTPException("No PTP interfaces associated to the device");
+            }
+
+            ArrayList<UsbEndpointDescriptor> endpoints = usbInterface.getAllEndpoints();
+            for (UsbEndpointDescriptor ep: endpoints) {
+                if (ep.isTypeBulk()) {
+                    if (ep.isInput()) {
+                        inMaxPS = ep.getMaxPacketSize();
+                        in = ep;
+                    } else {
+                        out = ep;
+                    }
+                } else if (ep.isTypeInterrupt() && ep.isInput()) {
+                    intr = ep;
+                }
+            }
+            endpointSanityCheck();
+
+            UsbDevice usbDevice = dev.getUsbDevice();
+            UsbConfigDescriptor[] descriptors = usbDevice.getConfig();
+
+            if ((descriptors == null) || (descriptors.length < 1)) {
+                throw new PTPException("Device with no descriptors!");
+            }
+
+            // we want exclusive access to this interface.
+            dev.open(
+                descriptors[0].getConfigurationValue(),
+                intf.getInterface(),
+                intf.getAlternateSetting()
+            );
+
+            // clear out any previous state
+            reset();
+            if (getClearStatus() != Response.OK
+                    && getDeviceStatus(null) != Response.OK) {
+                throw new PTPException("can't init");
+            }
+
+            // get info to sanity check later requests
+            info = getDeviceInfoUncached();
+
+            // set up to use vendor extensions, if any
+            if (info.vendorExtensionId != 0) {
+                info.factory = updateFactory(info.vendorExtensionId);
+            }
+            session.setFactory(this);
+        } catch (USBException e) {
+            throw new PTPException(
+                "Error initializing the communication with the camera (" +
+                e.getMessage()
+                + ")" , e);
         }
-        endpointSanityCheck();
-
-        UsbDevice usbDevice = dev.getUsbDevice();
-        UsbConfigDescriptor[] descriptors = usbDevice.getConfig();
-
-        if ((descriptors == null) || (descriptors.length < 1)) {
-            throw new USBException("Device with no descriptors!");
-        }
-
-        // we want exclusive access to this interface.
-        dev.open(
-            descriptors[0].getConfigurationValue(),
-            intf.getInterface(),
-            intf.getAlternateSetting()
-        );
-
-        // clear out any previous state
-        reset();
-        if (getClearStatus() != Response.OK
-                && getDeviceStatus(null) != Response.OK) {
-            throw new USBException("can't init");
-        }
-
-        // get info to sanity check later requests
-        info = getDeviceInfoUncached();
-
-        // set up to use vendor extensions, if any
-        if (info.vendorExtensionId != 0) {
-            info.factory = updateFactory(info.vendorExtensionId);
-        }
-        session.setFactory(this);
     }
 
         /**
@@ -152,7 +158,7 @@ public class BaselineInitiator extends NameFactory implements Runnable {
      * a newly cached copy.
      * @see #getDeviceInfoUncached
      */
-    public DeviceInfo getDeviceInfo() throws USBException {
+    public DeviceInfo getDeviceInfo() throws PTPException {
         if (info == null) {
             return getDeviceInfoUncached();
         }
@@ -171,27 +177,28 @@ public class BaselineInitiator extends NameFactory implements Runnable {
      * Ideally, only this control request will ever be used, since it
      * works even when the bulk channels are halted.
      */
-    public void reset() throws USBException {
-        /**
-        if (TRACE) {
-            System.err.println("reset " + getPortIdentifier());
-        }
-        **/
-        
-        dev.controlMsg(
-            (byte) (ControlMessage.DIR_TO_DEVICE      |
-                    ControlMessage.TYPE_CLASS         |
-                    ControlMessage.RECIPIENT_INTERFACE),
-            CLASS_DEVICE_RESET,
-            0,
-            0,
-            new byte[0],
-            0,
-            Device.DEFAULT_TIMEOUT,
-            false
-        );
+    public void reset() throws PTPException {
+        try {
+            dev.controlMsg(
+                (byte) (ControlMessage.DIR_TO_DEVICE      |
+                        ControlMessage.TYPE_CLASS         |
+                        ControlMessage.RECIPIENT_INTERFACE),
+                CLASS_DEVICE_RESET,
+                0,
+                0,
+                new byte[0],
+                0,
+                Device.DEFAULT_TIMEOUT,
+                false
+            );
 
-        session.close();
+            session.close();
+        } catch (USBException e) {
+            throw new PTPException(
+                "Error initializing the communication with the camera (" +
+                e.getMessage()
+                + ")" , e);
+        }
     }
 
     /**
@@ -200,7 +207,7 @@ public class BaselineInitiator extends NameFactory implements Runnable {
      * multisession operations; you must close a session before
      * opening a new one.
      */
-    public void openSession() throws USBException {
+    public void openSession() throws PTPException {
         Command command;
         Response response;
 
@@ -213,7 +220,7 @@ public class BaselineInitiator extends NameFactory implements Runnable {
                     session.open();
                     return;
                 default:
-                    throw new USBException(response.toString());
+                    throw new PTPException(response.toString());
             }
         }
     }
@@ -222,7 +229,7 @@ public class BaselineInitiator extends NameFactory implements Runnable {
      * Issues a CloseSession command to the device; may be used
      * with all responders.
      */
-    public void closeSession() throws USBException {
+    public void closeSession() throws PTPException {
         Response response;
 
         synchronized (session) {
@@ -238,7 +245,7 @@ public class BaselineInitiator extends NameFactory implements Runnable {
                     session.close();
                     return;
                 default:
-                    throw new USBException(response.toString());
+                    throw new PTPException(response.toString());
             }
         }
     }
@@ -295,7 +302,7 @@ public class BaselineInitiator extends NameFactory implements Runnable {
      *	any positional response parameters
      */
     protected Response transact0(int code, Data data)
-    throws USBException {
+    throws PTPException {
         synchronized (session) {
             Command command = new Command(code, session);
             return transactUnsync(command, data);
@@ -311,9 +318,26 @@ public class BaselineInitiator extends NameFactory implements Runnable {
      *	any positional response parameters
      */
     protected Response transact1(int code, Data data, int p1)
-    throws USBException {
+    throws PTPException {
         synchronized (session) {
             Command command = new Command(code, session, p1);
+            return transactUnsync(command, data);
+        }
+    }
+
+    /**
+     * Performs a PTP transaction, passing two command parameters.
+     * @param code the command code
+     * @param data data to be sent or received; or null
+     * @param p1 the first positional parameter
+     * @param p2 the second positional parameter
+     * @return response; check for code Response.OK before using
+     *	any positional response parameters
+     */
+    protected Response transact2(int code, Data data, int p1, int p2)
+            throws PTPException {
+        synchronized (session) {
+            Command command = new Command(code, session, p1, p2);
             return transactUnsync(command, data);
         }
     }
@@ -324,7 +348,7 @@ public class BaselineInitiator extends NameFactory implements Runnable {
     // but clears stalled endpoints before returning
     // (except when exceptions are thrown)
     // returns -1 iff device wouldn't return OK status
-    private int getClearStatus() throws USBException {
+    private int getClearStatus() throws PTPException {
         Buffer buf = new Buffer(null, 0);
         int retval = getDeviceStatus(buf);
 
@@ -356,7 +380,7 @@ public class BaselineInitiator extends NameFactory implements Runnable {
             for (int i = 0; i < 10; i++) {
                 try {
                     status = getDeviceStatus(null);
-                } catch (USBException x) {
+                } catch (PTPException x) {
                     if (DEBUG) {
                         x.printStackTrace();
                     }
@@ -388,36 +412,40 @@ public class BaselineInitiator extends NameFactory implements Runnable {
     // returns Response.OK, Response.DeviceBusy, etc
     // per fig D.6, response may hold stalled endpoint numbers
     private int getDeviceStatus(Buffer buf)
-    throws USBException {
-        if (TRACE) {
-            System.err.println("devstatus");
-        }
-        byte[] data = new byte[33];
-        dev.controlMsg(
-            (byte) (ControlMessage.DIR_TO_HOST        |
-                    ControlMessage.TYPE_CLASS         |
-                    ControlMessage.RECIPIENT_INTERFACE),
-            CLASS_GET_DEVICE_STATUS,
-            0,
-            0,
-            data,
-            data.length, // force short reads
-            Device.DEFAULT_TIMEOUT,
-            false
-        );
+    throws PTPException {
+        try {
+            byte[] data = new byte[33];
+            dev.controlMsg(
+                (byte) (ControlMessage.DIR_TO_HOST        |
+                        ControlMessage.TYPE_CLASS         |
+                        ControlMessage.RECIPIENT_INTERFACE),
+                CLASS_GET_DEVICE_STATUS,
+                0,
+                0,
+                data,
+                data.length, // force short reads
+                Device.DEFAULT_TIMEOUT,
+                false
+            );
 
-        if (buf == null) {
-            buf = new Buffer(data);
-        } else {
-            buf.data = data;
-        }
-        buf.offset = 4;
-        buf.length = buf.getU16(0);
-        if (buf.length != buf.data.length) {
-            throw new RuntimeException();
-        }
+            if (buf == null) {
+                buf = new Buffer(data);
+            } else {
+                buf.data = data;
+            }
+            buf.offset = 4;
+            buf.length = buf.getU16(0);
+            if (buf.length != buf.data.length) {
+                throw new RuntimeException();
+            }
 
-        return buf.getU16(2);
+            return buf.getU16(2);
+        }  catch (USBException e) {
+            throw new PTPException(
+                "Error initializing the communication with the camera (" +
+                e.getMessage()
+                + ")" , e);
+        }
     }
 
     // add event listener
@@ -430,7 +458,7 @@ public class BaselineInitiator extends NameFactory implements Runnable {
      * that may be issued both inside or outside of a session.
      */
     private DeviceInfo getDeviceInfoUncached()
-    throws USBException {
+    throws PTPException {
         DeviceInfo data = new DeviceInfo(this);
         Response response;
 
@@ -445,7 +473,7 @@ public class BaselineInitiator extends NameFactory implements Runnable {
                 info = data;
                 return data;
             default:
-                throw new USBException(response.toString());
+                throw new PTPException(response.toString());
         }
     }
 
@@ -454,9 +482,9 @@ public class BaselineInitiator extends NameFactory implements Runnable {
     // - caller is synchronized on session
     // - on return, device is always in idle/"command ready" state
     // - on return, session was only closed by CloseSession
-    // - on USBException, device (and session!) has been reset
+    // - on PTPException, device (and session!) has been reset
     private Response transactUnsync(Command command, Data data)
-    throws USBException {
+    throws PTPException {
         if (!"command".equals(command.getBlockTypeName(command.getBlockType()))) {
             throw new IllegalArgumentException(command.toString());
         }
@@ -523,7 +551,7 @@ public class BaselineInitiator extends NameFactory implements Runnable {
                         // fill up the rest of the first buffer
                         len = fd.read(fd.data, fd.offset, len);
                         if (len < 0) {
-                            throw new USBException("eh? " + len);
+                            throw new PTPException("eh? " + len);
                         }
                         len += fd.offset;
 
@@ -536,7 +564,7 @@ public class BaselineInitiator extends NameFactory implements Runnable {
 
                             len = fd.read(fd.data, 0, fd.data.length);
                             if (len < 0) {
-                                throw new USBException("short: " + len);
+                                throw new PTPException("short: " + len);
                             }
                         }
 
@@ -562,7 +590,7 @@ public class BaselineInitiator extends NameFactory implements Runnable {
                     if (!"data".equals(data.getBlockTypeName(data.getBlockType()))
                             || data.getCode() != command.getCode()
                             || data.getXID() != command.getXID()) {
-                        throw new USBException("protocol err 1, " + data);
+                        throw new PTPException("protocol err 1, " + data);
                     }
 
                     // get the rest of it
@@ -605,8 +633,8 @@ public class BaselineInitiator extends NameFactory implements Runnable {
             byte buf[] = new byte[Response.MAX_LEN];
             int len = dev.getInputStream(in).read(buf);
 
-            if (len == 0) // ZLP terminated previous data?
-            {
+            // ZLP terminated previous data?
+            if (len == 0) {
                 len = dev.getInputStream(in).read(buf);
             }
 
@@ -634,7 +662,7 @@ public class BaselineInitiator extends NameFactory implements Runnable {
                     // structurally, the protocol handles certain operations
                     // concurrently.
                     status = getClearStatus();
-                } catch (USBException x) {
+                } catch (PTPException x) {
                     if (DEBUG) {
                         x.printStackTrace();
                     }
@@ -642,7 +670,7 @@ public class BaselineInitiator extends NameFactory implements Runnable {
 
                 // something's very broken
                 if (status == Response.OK || status == -1) {
-                    throw e;
+                    throw new PTPException(e.getMessage(), e);
                 }
 
                 // treat status code as the device's response
@@ -656,37 +684,31 @@ public class BaselineInitiator extends NameFactory implements Runnable {
                 abort = false;
                 return response;
             }
-            throw e;
+            throw new PTPException(e.getMessage(), e);
 
         } catch (IOException e) {
-            throw new USBException(e.getMessage(), e);
+            throw new PTPException(e.getMessage(), e);
 
         } finally {
             if (abort) {
                 // not an error we know how to recover;
                 // bye bye session!
-                try {
-                    reset();
-                } catch (IOException e) {
-                    if (DEBUG) {
-                        e.printStackTrace();
-                    }
-                }
+                reset();
             }
         }
     }
 
-    private void endpointSanityCheck() throws USBException {
+    private void endpointSanityCheck() throws PTPException {
         if (in == null) {
-            throw new USBException("No input end-point found!");
+            throw new PTPException("No input end-point found!");
         }
 
         if (out == null) {
-            throw new USBException("No output end-point found!");
+            throw new PTPException("No output end-point found!");
         }
 
         if (intr == null) {
-            throw new USBException("No input interrupt end-point found!");
+            throw new PTPException("No input interrupt end-point found!");
         }
     }
 

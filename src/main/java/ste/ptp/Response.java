@@ -17,8 +17,6 @@
 
 package ste.ptp;
 
-import java.io.PrintStream;
-
 
 /**
  * The final phase of a PTP transaction sends a command's response from

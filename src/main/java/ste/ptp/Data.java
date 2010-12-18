@@ -29,12 +29,12 @@ public class Data extends Container
 {
     private boolean	in;
 
-    Data (NameFactory f) { this (true, null, 0, f); }
+    public Data (NameFactory f) { this (true, null, 0, f); }
 
-    Data (boolean isIn, byte buf [], NameFactory f)
+    public Data (boolean isIn, byte buf [], NameFactory f)
 	{ super (buf, f); in = isIn; }
 
-    Data (boolean isIn, byte buf [], int len, NameFactory f)
+    public Data (boolean isIn, byte buf [], int len, NameFactory f)
 	{ super (buf, len, f); in = isIn; }
 
     boolean isIn ()

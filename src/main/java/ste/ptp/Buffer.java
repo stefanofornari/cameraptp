@@ -39,9 +39,9 @@ package ste.ptp;
 public class Buffer
 {
     // package private
-    byte	data [];
-    int		length;
-    int		offset;
+    protected byte data [];
+    protected int  length;
+    protected int  offset;
 
     // package private
     Buffer (byte buf [])
@@ -61,6 +61,13 @@ public class Buffer
 	offset = 0;
     }
 
+    public byte[] getData() {
+        return data;
+    }
+
+    public int getLength() {
+        return length;
+    }
 
     /** Unmarshals a signed 8 bit integer from a fixed buffer offset. */
     protected final int getS8 (int index)
@@ -314,5 +321,15 @@ public class Buffer
 	// drop terminal null
 	str.setLength (len - 1);
 	return str.toString ();
+    }
+
+    public void dump() {
+        System.out.println(data);
+        for (int i=0; i < data.length; ++i) {
+            if ((i%8) == 0) {
+                System.out.println();
+            }
+            System.out.print(String.format("%1$02X ", data[i]));
+        }
     }
 }

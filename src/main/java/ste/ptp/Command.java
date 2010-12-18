@@ -264,7 +264,7 @@ public class Command extends ParamVector {
             case EosSetFWTProfile:            return "EosSetFWTProfile";
             case EosSetProfileToWTF:          return "EosSetProfileToWTF";
             case EosBulbStart:                return "EosBulbStart";
-            case EosBulbEnd:                  return "EosBulbend";
+            case EosBulbEnd:                  return "EosBulbEnd";
             case EosRemoeReleaseOn:           return "EosRemoeReleaseOn";
             case EosRemoeReleaseOff:          return "EosRemoeReleaseOff";
             case EosDoAF:                     return "EosDoAF";
