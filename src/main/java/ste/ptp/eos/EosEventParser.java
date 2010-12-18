@@ -87,7 +87,7 @@ public class EosEventParser {
         try {
             int len = getNextS32(); // len
             if (len != 0x10) {
-                is.skip(len);
+                is.skip(len-4);
                 throw new PTPUnsupportedException("Unsopported event");
             }
             event.setCode(getNextS32());

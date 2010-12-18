@@ -90,7 +90,7 @@ public class EosInitiator extends BaselineInitiator {
             try {
                 System.out.println(EosEventFormat.format(parser.getNextEvent()));
             } catch (PTPUnsupportedException e) {
-                System.out.println("Skipping undupported event");
+                System.out.println("Skipping unsupported event");
             }
         }
 

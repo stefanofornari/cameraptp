@@ -29,6 +29,16 @@ public class EosEventParserTest extends TestCase {
       (byte)0x6D, (byte)0x00, (byte)0x00, (byte)0x00,
       (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00
     };
+
+    private static byte[] UNSUP_SUP_EVENT = {
+      (byte)0x08, (byte)0x00, (byte)0x00, (byte)0x00,
+      (byte)0x8E, (byte)0xC1, (byte)0x00, (byte)0x00,
+      
+      (byte)0x10, (byte)0x00, (byte)0x00, (byte)0x00,
+      (byte)0x89, (byte)0xC1, (byte)0x00, (byte)0x00,
+      (byte)0x02, (byte)0xD1, (byte)0x00, (byte)0x00,
+      (byte)0x6D, (byte)0x00, (byte)0x00, (byte)0x00
+    };
     
     public EosEventParserTest(String testName) {
         super(testName);
@@ -122,6 +132,27 @@ public class EosEventParserTest extends TestCase {
             // OK!
             //
         }
+    }
+
+    public void testSupportedAfterunsupportedEvent() throws Exception {
+        EosEventParser parser = new EosEventParser(
+                                    new ByteArrayInputStream(
+                                        UNSUP_SUP_EVENT
+                                    )
+                                );
+
+        try {
+            parser.getNextEvent();
+            fail("Unsopported event not cached");
+        } catch (PTPUnsupportedException e) {
+            //
+            // OK!
+            //
+        }
+
+        EosEvent e = parser.getNextEvent();
+
+        assertEquals(EosEventConstants.EosEventPropValueChanged, e.getCode());
     }
 
 }
