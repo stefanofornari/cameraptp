@@ -18,11 +18,34 @@ package ste.ptp;
 
 public class PTPException extends Exception {
 
+    private int errorCode;
+
+    public PTPException() {
+        this("");
+    }
+
+    public PTPException(int errorCode) {
+        this("", null, errorCode);
+    }
+
     public PTPException(String string) {
-        super(string);
+        this(string, null);
+    }
+
+    public PTPException(String string, int errorCode) {
+        this(string, null, errorCode);
     }
 
     public PTPException(String string, Throwable t) {
+        this(string, t, Response.Undefined);
+    }
+
+    public  PTPException(String string, Throwable t, int errorCode) {
         super(string, t);
+        this.errorCode = errorCode;
+    }
+
+    public int getErrorCode() {
+        return errorCode;
     }
 }
