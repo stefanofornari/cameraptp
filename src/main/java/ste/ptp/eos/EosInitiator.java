@@ -16,17 +16,20 @@
 //
 package ste.ptp.eos;
 
-import ch.ntb.usb.*;
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
+import java.util.List;
+
+import ch.ntb.usb.*;
+
 import ste.ptp.BaselineInitiator;
 import ste.ptp.Command;
 import ste.ptp.Data;
 import ste.ptp.DevicePropDesc;
-import ste.ptp.Event;
 import ste.ptp.PTPException;
 import ste.ptp.PTPUnsupportedException;
 import ste.ptp.Response;
+
 
 /**
  * This supports all standardized PTP-over-USB operations, including
@@ -69,9 +72,13 @@ public class EosInitiator extends BaselineInitiator {
      *
      * @throws PTPException in case of errors
      */
-    public ArrayList<Event> checkEvents()
+    public List<EosEvent> checkEvents()
     throws PTPException {
-        //EosEvent data = new EosEvent();
+        int ret = transact1(Command.EosSetEventMode, null, 1).getCode();
+        if (ret != Response.OK) {
+            throw new PTPException("Error reading events", ret);
+        }
+
         Data data = new Data(this);
         Response res = transact0(Command.EosGetEvent, data);
         if (res.getCode() != Response.OK) {
@@ -86,19 +93,21 @@ public class EosInitiator extends BaselineInitiator {
 
         EosEventParser parser = new EosEventParser(new ByteArrayInputStream(buf));
 
+        ArrayList<EosEvent> events = new ArrayList<EosEvent>();
         while (parser.hasEvents()) {
             try {
-                System.out.println(EosEventFormat.format(parser.getNextEvent()));
+                events.add(parser.getNextEvent());
             } catch (PTPUnsupportedException e) {
-                System.out.println("Skipping unsupported event");
+                //
+                // TODO: log this information?
+                //
+                System.err.println("Skipping unsupported event");
             }
         }
 
-        data.dump();
+        //data.dump();
 
-        //return new EosEventParser(res.getData()).getEvents();
-
-        return new ArrayList<Event>();
+        return events;
     }
 
 
@@ -128,11 +137,6 @@ public class EosInitiator extends BaselineInitiator {
         }
 
         int ret = transact1(Command.EosSetRemoteMode, null, 1).getCode();
-        if (ret != Response.OK) {
-            return ret;
-        }
-
-        ret = transact1(Command.EosSetEventMode, null, 1).getCode();
         if (ret != Response.OK) {
             return ret;
         }
