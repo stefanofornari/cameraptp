@@ -147,17 +147,10 @@ public class EosInitiator extends BaselineInitiator {
 
         checkEvents();
         
-        
-        //
-        // Generic intitialization
-        //
-        /*
-        ret = transact2(Command.InitiateCapture, null, storageId, formatCode).getCode();
+        ret = transact0(Command.EosRemoteRelease, null).getCode();
         if (ret != Response.OK) {
             return ret;
         }
-         * 
-         */
 
         return Response.OK;
     }
