@@ -30,7 +30,6 @@ import ste.ptp.PTPException;
 import ste.ptp.PTPUnsupportedException;
 import ste.ptp.Response;
 
-
 /**
  * This supports all standardized PTP-over-USB operations, including
  * operations (and modes) that are optional for all responders.
@@ -73,7 +72,7 @@ public class EosInitiator extends BaselineInitiator {
      * @throws PTPException in case of errors
      */
     public List<EosEvent> checkEvents()
-    throws PTPException {
+            throws PTPException {
         int ret = transact1(Command.EosSetEventMode, null, 1).getCode();
         if (ret != Response.OK) {
             throw new PTPException("Error reading events", ret);
@@ -88,7 +87,7 @@ public class EosInitiator extends BaselineInitiator {
         //
         // We need to discard the initial 12 USB header bytes
         //
-        byte[] buf = new byte[data.getLength()-12];
+        byte[] buf = new byte[data.getLength() - 12];
         System.arraycopy(data.getData(), 12, buf, 0, buf.length);
 
         EosEventParser parser = new EosEventParser(new ByteArrayInputStream(buf));
@@ -110,7 +109,6 @@ public class EosInitiator extends BaselineInitiator {
         return events;
     }
 
-
     /**
      * Starts the capture of one (or more) new
      * data objects, according to current device properties.
@@ -127,8 +125,8 @@ public class EosInitiator extends BaselineInitiator {
      *	CaptureComplete events provide capture status, and
      *	ObjectAdded events provide per-object status.
      */
-    public int initiateCapture(int storageId, int formatCode)
-    throws PTPException {
+    public void initiateCapture(int storageId, int formatCode)
+            throws PTPException {
         //
         // Special initialization for EOS cameras
         //
@@ -138,7 +136,7 @@ public class EosInitiator extends BaselineInitiator {
 
         int ret = transact1(Command.EosSetRemoteMode, null, 1).getCode();
         if (ret != Response.OK) {
-            return ret;
+            throw new PTPException("Unale to set remote mode", ret);
         }
 
         //
@@ -146,12 +144,19 @@ public class EosInitiator extends BaselineInitiator {
         //
 
         checkEvents();
-        
+
         ret = transact0(Command.EosRemoteRelease, null).getCode();
         if (ret != Response.OK) {
-            return ret;
-        }
+            String msg = "Canon EOS Capture failed to release: Unknown error "
+                    + ret
+                    + " , please report.";
+            if (ret == 1) {
+                msg = "Canon EOS Capture failed to release: Perhaps no focus?";
+            } else if (ret == 7) {
+                msg = "Canon EOS Capture failed to release: Perhaps no more memory on card?";
+            }
 
-        return Response.OK;
+            throw new PTPException(msg, ret);
+        }
     }
 }

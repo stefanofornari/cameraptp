@@ -69,7 +69,7 @@ public class BaselineInitiator extends NameFactory implements Runnable {
     final static boolean DEBUG = false;
     final static boolean TRACE = false;
     
-    protected Device                 dev;
+    protected Device                 device;
     protected UsbInterfaceDescriptor intf;
     protected UsbEndpointDescriptor  in;
     protected int                    inMaxPS;
@@ -82,7 +82,7 @@ public class BaselineInitiator extends NameFactory implements Runnable {
      * Constructs a class driver object, if the device supports
      * operations according to Annex D of the PTP specification.
      *
-     * @param dev the first PTP interface will be used
+     * @param device the first PTP interface will be used
      * @exception IllegalArgumentException if the device has no
      *	Digital Still Imaging Class or PTP interfaces
      */
@@ -92,7 +92,7 @@ public class BaselineInitiator extends NameFactory implements Runnable {
                 throw new IllegalArgumentException();
             }
             session = new Session();
-            this.dev = dev;
+            this.device = dev;
             intf = dev.getPTPInterface();
 
             UsbInterface usbInterface = intf.getUsbInterface();
@@ -145,12 +145,21 @@ public class BaselineInitiator extends NameFactory implements Runnable {
                 info.factory = updateFactory(info.vendorExtensionId);
             }
             session.setFactory(this);
+        } catch (USBBusyException e) {
+            throw new PTPBusyException();
         } catch (USBException e) {
             throw new PTPException(
                 "Error initializing the communication with the camera (" +
                 e.getMessage()
                 + ")" , e);
         }
+    }
+
+    /**
+     * @return the device
+     */
+    public Device getDevice() {
+        return device;
     }
 
         /**
@@ -179,7 +188,7 @@ public class BaselineInitiator extends NameFactory implements Runnable {
      */
     public void reset() throws PTPException {
         try {
-            dev.controlMsg(
+            device.controlMsg(
                 (byte) (ControlMessage.DIR_TO_DEVICE      |
                         ControlMessage.TYPE_CLASS         |
                         ControlMessage.RECIPIENT_INTERFACE),
@@ -247,6 +256,15 @@ public class BaselineInitiator extends NameFactory implements Runnable {
                 default:
                     throw new PTPException(response.toString());
             }
+        }
+    }
+
+    /**
+     * @return true if the current session is active, false otherwise
+     */
+    public boolean isSessionActive() {
+        synchronized (session) {
+            return session.isActive();
         }
     }
     
@@ -415,7 +433,7 @@ public class BaselineInitiator extends NameFactory implements Runnable {
     throws PTPException {
         try {
             byte[] data = new byte[33];
-            dev.controlMsg(
+            device.controlMsg(
                 (byte) (ControlMessage.DIR_TO_HOST        |
                         ControlMessage.TYPE_CLASS         |
                         ControlMessage.RECIPIENT_INTERFACE),
@@ -514,7 +532,7 @@ public class BaselineInitiator extends NameFactory implements Runnable {
         boolean abort = true;
 
         try {
-            OutputStream stream = dev.getOutputStream(out);
+            OutputStream stream = device.getOutputStream(out);
 
             // issue command
             // rejected commands will stall both EPs
@@ -579,7 +597,7 @@ public class BaselineInitiator extends NameFactory implements Runnable {
                     // read data?
                 } else {
                     byte buf1[] = new byte[inMaxPS];
-                    int len = dev.getInputStream(in).read(buf1);
+                    int len = device.getInputStream(in).read(buf1);
 
                     // Get the first bulk packet(s), check header for length
                     data.data = buf1;
@@ -602,7 +620,7 @@ public class BaselineInitiator extends NameFactory implements Runnable {
 
                         fd.write(buf1, Data.HDR_LEN, len - Data.HDR_LEN);
                         if (len == inMaxPS && expected != inMaxPS) {
-                            InputStream is = dev.getInputStream(in);
+                            InputStream is = device.getInputStream(in);
 
                             // at max usb data rate, 128K ~= 0.11 seconds
                             // typically it's more time than that
@@ -617,7 +635,7 @@ public class BaselineInitiator extends NameFactory implements Runnable {
                         buf1 = new byte[expected];
                         System.arraycopy(data.data, 0, buf1, 0, len);
                         data.data = buf1;
-                        data.length += dev.getInputStream(in).read(buf1, len, expected - len);
+                        data.length += device.getInputStream(in).read(buf1, len, expected - len);
                     }
 
                     // if ((expected % inMaxPS) == 0)
@@ -631,11 +649,11 @@ public class BaselineInitiator extends NameFactory implements Runnable {
             // (short) read the response
             // this won't stall anything
             byte buf[] = new byte[Response.MAX_LEN];
-            int len = dev.getInputStream(in).read(buf);
+            int len = device.getInputStream(in).read(buf);
 
             // ZLP terminated previous data?
             if (len == 0) {
-                len = dev.getInputStream(in).read(buf);
+                len = device.getInputStream(in).read(buf);
             }
 
             response = new Response(buf, len, this);
@@ -717,4 +735,5 @@ public class BaselineInitiator extends NameFactory implements Runnable {
         // TODO: implement clearHalt of an endpoint
         //
     }
+
 }
