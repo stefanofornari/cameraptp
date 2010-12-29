@@ -18,9 +18,7 @@
 package ste.ptp.eos;
 
 import java.util.ArrayList;
-import ste.ptp.Data;
-import ste.ptp.Event;
-import ste.ptp.NameFactory;
+import java.util.List;
 
 
 
@@ -36,14 +34,9 @@ public class EosEvent implements EosEventConstants {
     private int code;
 
     /**
-     * Param 1
+     * Params
      */
-    private int param1;
-
-    /**
-     * Param 2
-     */
-    private int param2;
+    private List params;
 
     /**
      * Creates a new parser with the given data
@@ -51,6 +44,7 @@ public class EosEvent implements EosEventConstants {
      * @param data the events data - NOT NULL
      */
     public EosEvent() {
+        params = new ArrayList();
     }
 
     public void setCode(int code) {
@@ -61,26 +55,28 @@ public class EosEvent implements EosEventConstants {
         return code;
     }
 
-    public int getParam1() {
-        return param1;
-    }
-
-    public int getParam2() {
-        return param2;
-    }
-
     /**
-     * @param param1 the param1 to set
+     * @param i the parameter index
+     * @param param the param to set
      */
-    public void setParam1(int param1) {
-        this.param1 = param1;
+    public void setParam(int i, Object value) {
+        if (params.size() <= i) {
+            ArrayList newParams = new ArrayList(i);
+            newParams.addAll(params);
+            params = newParams;
+            for (int j=params.size(); j<i; ++j) {
+                params.add(null);
+            }
+        }
+        params.set(i-1, value);
     }
 
-    /**
-     * @param param2 the param2 to set
-     */
-    public void setParam2(int param2) {
-        this.param2 = param2;
+    public void setParam(int i, int value) {
+        setParam(i, new Integer(value));
+    }
+
+    public int getIntParam(int i) {
+        return ((Integer)params.get(i-1)).intValue();
     }
 
 }

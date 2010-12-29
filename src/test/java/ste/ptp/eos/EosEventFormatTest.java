@@ -45,8 +45,8 @@ public class EosEventFormatTest extends TestCase {
         EosEvent e = new EosEvent();
         
         e.setCode(EosEventConstants.EosEventPropValueChanged);
-        e.setParam1(EosEventConstants.EosPropAperture);
-        e.setParam2(0x001D);
+        e.setParam(1, EosEventConstants.EosPropAperture);
+        e.setParam(2, 0x001D);
 
         String msg = EosEventFormat.format(e);
 
@@ -55,8 +55,8 @@ public class EosEventFormatTest extends TestCase {
         assertTrue(msg.indexOf("29") >= 0);
 
         e.setCode(EosEventConstants.EosEventPropValueChanged);
-        e.setParam1(EosEventConstants.EosPropISOSpeed);
-        e.setParam2(0x0068);
+        e.setParam(1, EosEventConstants.EosPropISOSpeed);
+        e.setParam(2, 0x0068);
 
         msg = EosEventFormat.format(e);
         

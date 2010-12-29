@@ -112,8 +112,8 @@ public class EosEventParserTest extends TestCase {
         EosEvent e = parser.getNextEvent();
 
         assertEquals(EosEventConstants.EosEventPropValueChanged, e.getCode());
-        assertEquals(0xD102, e.getParam1());
-        assertEquals(0x006D, e.getParam2());
+        assertEquals(0xD102, e.getIntParam(1));
+        assertEquals(0x006D, e.getIntParam(2));
 
     }
 

@@ -29,9 +29,9 @@ public class EosEventFormat implements EosEventConstants {
 
         sb.append(getEventName(e.getCode()))
           .append(" [")
-          .append(getPropertyName(e.getParam1()))
+          .append(getPropertyName(e.getIntParam(1)))
           .append(": ")
-          .append(e.getParam2())
+          .append(e.getIntParam(2))
           .append("]");
           ;
 

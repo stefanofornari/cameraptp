@@ -92,8 +92,8 @@ public class EosEventParser {
             }
             event.setCode(getNextS32());
 
-            event.setParam1(getNextS32());
-            event.setParam2(getNextS32());
+            event.setParam(1, getNextS32());
+            event.setParam(2, getNextS32());
         } catch (IOException e) {
             throw new PTPException("Error reading event stream", e);
         }

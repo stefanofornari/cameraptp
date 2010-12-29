@@ -49,14 +49,14 @@ public class EosEventTest extends TestCase {
     public void testParam1() {
         EosEvent e = new EosEvent();
 
-        e.setParam1(0x11);
-        assertEquals(0x11, e.getParam1());
+        e.setParam(1, (int)0x11);
+        assertEquals(0x11, e.getIntParam(1));
     }
 
     public void testParam2() {
         EosEvent e = new EosEvent();
 
-        e.setParam2(0x12);
-        assertEquals(0x12, e.getParam2());
+        e.setParam(2, (int)0x12);
+        assertEquals(0x12, e.getIntParam(2));
     }
 }

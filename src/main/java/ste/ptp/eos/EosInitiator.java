@@ -84,6 +84,9 @@ public class EosInitiator extends BaselineInitiator {
             throw new PTPException(String.format("Failed getting events from the camera (%1$04X)", res.getCode()));
         }
 
+        System.out.println("Event data:");
+        data.dump();
+
         //
         // We need to discard the initial 12 USB header bytes
         //
@@ -103,8 +106,6 @@ public class EosInitiator extends BaselineInitiator {
                 System.err.println("Skipping unsupported event");
             }
         }
-
-        //data.dump();
 
         return events;
     }
