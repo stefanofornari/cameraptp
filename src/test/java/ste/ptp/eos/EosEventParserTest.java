@@ -15,14 +15,19 @@ import ste.ptp.PTPUnsupportedException;
  */
 public class EosEventParserTest extends TestCase {
 
-    private static byte[] EOS_PROP_VALUE_CHANGED = {
+    private static final byte[] EOS_PROP_VALUE_CHANGED = {
       (byte)0x10, (byte)0x00, (byte)0x00, (byte)0x00,
       (byte)0x89, (byte)0xC1, (byte)0x00, (byte)0x00,
       (byte)0x02, (byte)0xD1, (byte)0x00, (byte)0x00,
       (byte)0x6D, (byte)0x00, (byte)0x00, (byte)0x00
     };
 
-    private static byte[] UNSUPPORTED_EVENT = {
+    private static final byte[] SHUTDOWN_TIMER_UPDATED = {
+      (byte)0x08, (byte)0x00, (byte)0x00, (byte)0x00,
+      (byte)0x8E, (byte)0xC1, (byte)0x00, (byte)0x00
+    };
+
+    private static final byte[] UNSUPPORTED_EVENT = {
       (byte)0x14, (byte)0x00, (byte)0x00, (byte)0x00,
       (byte)0x88, (byte)0x20, (byte)0x00, (byte)0x00,
       (byte)0x02, (byte)0xD1, (byte)0x00, (byte)0x00,
@@ -30,9 +35,8 @@ public class EosEventParserTest extends TestCase {
       (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00
     };
 
-    private static byte[] UNSUP_SUP_EVENT = {
-      (byte)0x08, (byte)0x00, (byte)0x00, (byte)0x00,
-      (byte)0x8E, (byte)0xC1, (byte)0x00, (byte)0x00,
+    private static final byte[] UNSUP_SUP_EVENT = {
+      (byte)0x04, (byte)0x00, (byte)0x00, (byte)0x00,
       
       (byte)0x10, (byte)0x00, (byte)0x00, (byte)0x00,
       (byte)0x89, (byte)0xC1, (byte)0x00, (byte)0x00,
@@ -102,7 +106,7 @@ public class EosEventParserTest extends TestCase {
         assertFalse(parser.hasEvents());
     }
 
-    public void testParseEosChanagesTypeObjectInfo() throws Exception {
+    public void testParseEventPropValueChanged() throws Exception {
         EosEventParser parser = new EosEventParser(
                                     new ByteArrayInputStream(
                                         EOS_PROP_VALUE_CHANGED
@@ -112,6 +116,7 @@ public class EosEventParserTest extends TestCase {
         EosEvent e = parser.getNextEvent();
 
         assertEquals(EosEventConstants.EosEventPropValueChanged, e.getCode());
+        assertEquals(2, e.getParamCount());
         assertEquals(0xD102, e.getIntParam(1));
         assertEquals(0x006D, e.getIntParam(2));
 
@@ -153,6 +158,19 @@ public class EosEventParserTest extends TestCase {
         EosEvent e = parser.getNextEvent();
 
         assertEquals(EosEventConstants.EosEventPropValueChanged, e.getCode());
+    }
+
+    public void testZeroParametersEvents() throws Exception {
+        EosEventParser parser = new EosEventParser(
+                                    new ByteArrayInputStream(
+                                        SHUTDOWN_TIMER_UPDATED
+                                    )
+                                );
+
+        EosEvent e = parser.getNextEvent();
+
+        assertEquals(EosEventConstants.EosEventShutdownTimerUpdated, e.getCode());
+        assertEquals(0, e.getParamCount());
     }
 
 }

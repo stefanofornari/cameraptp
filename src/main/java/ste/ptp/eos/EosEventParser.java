@@ -86,14 +86,12 @@ public class EosEventParser {
 
         try {
             int len = getNextS32(); // len
-            if (len != 0x10) {
-                is.skip(len-4);
-                throw new PTPUnsupportedException("Unsopported event");
+            if (len < 0x8) {
+                throw new PTPUnsupportedException("Unsupported event (size<8 ???)");
             }
             event.setCode(getNextS32());
 
-            event.setParam(1, getNextS32());
-            event.setParam(2, getNextS32());
+            parseParameters(event, len-8);
         } catch (IOException e) {
             throw new PTPException("Error reading event stream", e);
         }
@@ -102,7 +100,24 @@ public class EosEventParser {
     }
 
 
-    // ---------------------------------------------------------- Private data
+    // --------------------------------------------------------- Private methods
+
+    private void parseParameters(EosEvent event, int len)
+    throws PTPException, IOException {
+        int code = event.getCode();
+        
+        if (code == event.EosEventPropValueChanged) {
+            event.setParam(1, getNextS32());
+            event.setParam(2, getNextS32());
+        } else if (code == event.EosEventShutdownTimerUpdated) {
+            //
+            // No parameters
+            //
+        } else {
+            is.skip(len);
+            throw new PTPUnsupportedException("Unsupported event");
+        }
+    }
 
     /**
      * Reads and return the next signed 32 bit integer read from the input

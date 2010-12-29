@@ -42,6 +42,15 @@ public class EosEventTest extends TestCase {
     public void testCode() {
         EosEvent e = new EosEvent();
 
+        try {
+            e.setCode(-1);
+            fail("code cannot be < 0");
+        } catch (IllegalArgumentException x) {
+            //
+            // OK
+            //
+        }
+
         e.setCode(0x10);
         assertEquals(0x10, e.getCode());
     }
@@ -58,5 +67,18 @@ public class EosEventTest extends TestCase {
 
         e.setParam(2, (int)0x12);
         assertEquals(0x12, e.getIntParam(2));
+    }
+
+    public void testInvalidParamIndex() {
+        EosEvent e = new EosEvent();
+
+        try {
+            e.setParam(-1, 0);
+            fail("param index cannot be < 0");
+        } catch (IllegalArgumentException x) {
+            //
+            // OK
+            //
+        }
     }
 }

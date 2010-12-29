@@ -48,6 +48,9 @@ public class EosEvent implements EosEventConstants {
     }
 
     public void setCode(int code) {
+        if (code < 0) {
+            throw new IllegalArgumentException("code cannot be < 0");
+        }
         this.code = code;
     }
 
@@ -60,6 +63,9 @@ public class EosEvent implements EosEventConstants {
      * @param param the param to set
      */
     public void setParam(int i, Object value) {
+        if (i<0) {
+            throw new IllegalArgumentException("param index cannot be < 0");
+        }
         if (params.size() <= i) {
             ArrayList newParams = new ArrayList(i);
             newParams.addAll(params);
@@ -77,6 +83,14 @@ public class EosEvent implements EosEventConstants {
 
     public int getIntParam(int i) {
         return ((Integer)params.get(i-1)).intValue();
+    }
+
+    /**
+     *
+     * @return the number of parameters in this event
+     */
+    public int getParamCount() {
+        return params.size();
     }
 
 }
