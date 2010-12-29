@@ -41,7 +41,7 @@ public class EosEventFormatTest extends TestCase {
         super.tearDown();
     }
 
-    public void testFormat() {
+    public void testFormat2Parameters() {
         EosEvent e = new EosEvent();
         
         e.setCode(EosEventConstants.EosEventPropValueChanged);
@@ -63,6 +63,17 @@ public class EosEventFormatTest extends TestCase {
         assertTrue(msg.indexOf("EosEventPropValueChanged") >= 0);
         assertTrue(msg.indexOf("EosPropISOSpeed") >= 0);
         assertTrue(msg.indexOf("104") >= 0);
+    }
+
+    public void testFormat0Prameters() {
+         EosEvent e = new EosEvent();
+
+        e.setCode(EosEventConstants.EosEventShutdownTimerUpdated);
+
+        String msg = EosEventFormat.format(e);
+
+        assertTrue(msg.indexOf("EosEventShutdownTimerUpdated") >= 0);
+        assertTrue(msg.indexOf('[') < 0);
     }
 
 }

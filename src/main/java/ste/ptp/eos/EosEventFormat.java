@@ -27,13 +27,15 @@ public class EosEventFormat implements EosEventConstants {
     public static String format(EosEvent e) {
         StringBuilder sb = new StringBuilder();
 
-        sb.append(getEventName(e.getCode()))
-          .append(" [")
-          .append(getPropertyName(e.getIntParam(1)))
-          .append(": ")
-          .append(e.getIntParam(2))
-          .append("]");
-          ;
+        sb.append(getEventName(e.getCode()));
+        if (e.getParamCount() > 0) {
+          sb.append(" [")
+            .append(getPropertyName(e.getIntParam(1)))
+            .append(": ")
+            .append(e.getIntParam(2))
+            .append("]");
+            ;
+        }
 
         return sb.toString();
     }
