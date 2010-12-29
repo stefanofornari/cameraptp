@@ -42,17 +42,11 @@ public class EosEventTest extends TestCase {
     public void testCode() {
         EosEvent e = new EosEvent();
 
-        try {
-            e.setCode(-1);
-            fail("code cannot be < 0");
-        } catch (IllegalArgumentException x) {
-            //
-            // OK
-            //
-        }
-
         e.setCode(0x10);
         assertEquals(0x10, e.getCode());
+
+        e.setCode(-0x10);
+        assertEquals(-0x10, e.getCode());
     }
 
     public void testParam1() {

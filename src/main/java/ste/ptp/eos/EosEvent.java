@@ -48,9 +48,6 @@ public class EosEvent implements EosEventConstants {
     }
 
     public void setCode(int code) {
-        if (code < 0) {
-            throw new IllegalArgumentException("code cannot be < 0");
-        }
         this.code = code;
     }
 
