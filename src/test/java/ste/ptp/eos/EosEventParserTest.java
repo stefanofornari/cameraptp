@@ -117,7 +117,7 @@ public class EosEventParserTest extends TestCase {
 
         assertEquals(EosEventConstants.EosEventPropValueChanged, e.getCode());
         assertEquals(2, e.getParamCount());
-        assertEquals(0xD102, e.getIntParam(1));
+        assertEquals(EosEventConstants.EosPropShutterSpeed, e.getIntParam(1));
         assertEquals(0x006D, e.getIntParam(2));
 
     }
@@ -139,7 +139,7 @@ public class EosEventParserTest extends TestCase {
         }
     }
 
-    public void testSupportedAfterunsupportedEvent() throws Exception {
+    public void testSupportedAfterUnsupportedEvent() throws Exception {
         EosEventParser parser = new EosEventParser(
                                     new ByteArrayInputStream(
                                         UNSUP_SUP_EVENT
@@ -171,6 +171,54 @@ public class EosEventParserTest extends TestCase {
 
         assertEquals(EosEventConstants.EosEventShutdownTimerUpdated, e.getCode());
         assertEquals(0, e.getParamCount());
+    }
+
+    public void testCameraStatusChanged() throws Exception {
+        final byte[] EOS_CAMERA_STATUS_CHANGED = {
+          (byte)0x0C, (byte)0x00, (byte)0x00, (byte)0x00,
+          (byte)0x8B, (byte)0xC1, (byte)0x00, (byte)0x00,
+          (byte)0x01, (byte)0x00, (byte)0x00, (byte)0x00
+        };
+        EosEventParser parser = new EosEventParser(
+                                    new ByteArrayInputStream(
+                                        EOS_CAMERA_STATUS_CHANGED
+                                    )
+                                );
+
+        EosEvent e = parser.getNextEvent();
+
+        assertEquals(EosEventConstants.EosEventCameraStatusChanged, e.getCode());
+        assertEquals(1, e.getParamCount());
+        assertEquals(0x01, e.getIntParam(1));
+    }
+
+    public void testParsePropValueChangedPictureStyleStandard()
+    throws Exception {
+        final byte[] BUF = {
+          (byte)0x28, (byte)0x00, (byte)0x00, (byte)0x00,
+          (byte)0x89, (byte)0xC1, (byte)0x00, (byte)0x00,
+          (byte)0x50, (byte)0xD1, (byte)0x00, (byte)0x00,
+          (byte)0x1C, (byte)0x00, (byte)0x00, (byte)0x00,
+          (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+          (byte)0x03, (byte)0x00, (byte)0x00, (byte)0x00,
+          (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+          (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+          (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+          (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00
+        };
+
+        EosEventParser parser = new EosEventParser(
+                                    new ByteArrayInputStream(BUF)
+                                );
+
+        EosEvent e = parser.getNextEvent();
+
+        assertEquals(EosEventConstants.EosEventPropValueChanged, e.getCode());
+        assertEquals(5, e.getParamCount());
+        assertEquals(EosEventConstants.EosPropPictureStyleStandard, e.getIntParam(1));
+        //
+        // TODO: check the other parameters
+        //
     }
 
 }

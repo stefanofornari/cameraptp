@@ -107,16 +107,42 @@ public class EosEventParser {
         int code = event.getCode();
         
         if (code == event.EosEventPropValueChanged) {
-            event.setParam(1, getNextS32());
-            event.setParam(2, getNextS32());
+            parsePropValueChangedParameters(event);
         } else if (code == event.EosEventShutdownTimerUpdated) {
             //
             // No parameters
             //
+        } else if (code == event.EosEventCameraStatusChanged) {
+             event.setParam(1, getNextS32());
         } else {
             is.skip(len);
             throw new PTPUnsupportedException("Unsupported event");
         }
+    }
+
+    private void parsePropValueChangedParameters(EosEvent event)
+    throws IOException {
+        int property = getNextS32();
+        event.setParam(1, property);  // property changed
+
+        if (property == event.EosPropPictureStyleStandard) {
+            int size = getNextS32(); // Do we need it?
+            //
+            // TODO: we need to parse the parameters, as soon as I know how to
+            // do it ...
+            //
+            is.skip(size-4);
+            event.setParam(2, 0); // sharpeness
+            event.setParam(3, 0); // contrast
+            event.setParam(4, 0); // saturation
+            event.setParam(5, 0); // color tone
+        } else {
+            //
+            // default
+            //
+            event.setParam(2, getNextS32());
+        }
+        
     }
 
     /**
