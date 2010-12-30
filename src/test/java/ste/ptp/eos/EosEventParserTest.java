@@ -192,21 +192,36 @@ public class EosEventParserTest extends TestCase {
         assertEquals(0x01, e.getIntParam(1));
     }
 
-    public void testParsePropValueChangedPictureStyleStandard()
+    public void testParsePropValueChangedPictureStyle()
     throws Exception {
         final byte[] BUF = {
           (byte)0x28, (byte)0x00, (byte)0x00, (byte)0x00,
           (byte)0x89, (byte)0xC1, (byte)0x00, (byte)0x00,
           (byte)0x50, (byte)0xD1, (byte)0x00, (byte)0x00,
+          // length
           (byte)0x1C, (byte)0x00, (byte)0x00, (byte)0x00,
-          (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+          // contrast (-4..+4)
           (byte)0x03, (byte)0x00, (byte)0x00, (byte)0x00,
+          // sharpness (1..7)
+          (byte)0x07, (byte)0x00, (byte)0x00, (byte)0x00,
+          // saturation (-4..+4)
+          (byte)0xFF, (byte)0xFF, (byte)0xFF, (byte)0xFF,
+          // color tone (-4..+4)
+          (byte)0x04, (byte)0x00, (byte)0x00, (byte)0x00,
+          // filter effect (0:None, 1:Yellow, 2:Orange, 3:Red, 4:Green)
           (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-          (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-          (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+          // toning effect (0:None, 1:Sepia, 2:Blue, 3:Purple, 4:Green)
           (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00
         };
 
+        //
+        // Let's do Standard, Portrait and BN
+        //
+
+
+        //
+        // Standard
+        //
         EosEventParser parser = new EosEventParser(
                                     new ByteArrayInputStream(BUF)
                                 );
@@ -214,11 +229,56 @@ public class EosEventParserTest extends TestCase {
         EosEvent e = parser.getNextEvent();
 
         assertEquals(EosEventConstants.EosEventPropValueChanged, e.getCode());
-        assertEquals(5, e.getParamCount());
+        assertEquals(7, e.getParamCount());
         assertEquals(EosEventConstants.EosPropPictureStyleStandard, e.getIntParam(1));
+        assertEquals(3, e.getIntParam(2));
+        assertEquals(7, e.getIntParam(3));
+        assertEquals(-1, e.getIntParam(4));
+        assertEquals(4, e.getIntParam(5));
+        assertEquals(0, e.getIntParam(6));
+        assertEquals(0, e.getIntParam(7));
+
         //
-        // TODO: check the other parameters
+        // Portrait
         //
+        BUF[8] = 0x51; // EosPropPictureStylePortrait
+        parser = new EosEventParser(
+                                    new ByteArrayInputStream(BUF)
+                                );
+
+        e = parser.getNextEvent();
+
+        assertEquals(EosEventConstants.EosEventPropValueChanged, e.getCode());
+        assertEquals(7, e.getParamCount());
+        assertEquals(EosEventConstants.EosPropPictureStylePortrait, e.getIntParam(1));
+        assertEquals(3, e.getIntParam(2));
+        assertEquals(7, e.getIntParam(3));
+        assertEquals(-1, e.getIntParam(4));
+        assertEquals(4, e.getIntParam(5));
+        assertEquals(0, e.getIntParam(6));
+        assertEquals(0, e.getIntParam(7));
+
+        //
+        // B/N
+        //
+        BUF[8] = 0x55; // EosPropPictureStylePortrait
+        BUF[32] = 0x03;
+        BUF[36] = 0x01;
+        parser = new EosEventParser(
+                                    new ByteArrayInputStream(BUF)
+                                );
+
+        e = parser.getNextEvent();
+
+        assertEquals(EosEventConstants.EosEventPropValueChanged, e.getCode());
+        assertEquals(7, e.getParamCount());
+        assertEquals(EosEventConstants.EosPropPictureStyleBlackWhite, e.getIntParam(1));
+        assertEquals(3, e.getIntParam(2));
+        assertEquals(7, e.getIntParam(3));
+        assertEquals(-1, e.getIntParam(4));
+        assertEquals(4, e.getIntParam(5));
+        assertEquals(3, e.getIntParam(6));
+        assertEquals(1, e.getIntParam(7));
     }
 
 }

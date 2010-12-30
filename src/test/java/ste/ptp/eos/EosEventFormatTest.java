@@ -66,7 +66,7 @@ public class EosEventFormatTest extends TestCase {
     }
 
     public void testFormat0Prameters() {
-         EosEvent e = new EosEvent();
+        EosEvent e = new EosEvent();
 
         e.setCode(EosEventConstants.EosEventShutdownTimerUpdated);
 
@@ -74,6 +74,59 @@ public class EosEventFormatTest extends TestCase {
 
         assertTrue(msg.indexOf("EosEventShutdownTimerUpdated") >= 0);
         assertTrue(msg.indexOf('[') < 0);
+    }
+
+    public void testPropPictureStyleNoBlackAndWhite() {
+        EosEvent e = new EosEvent();
+
+        e.setCode(EosEventConstants.EosEventPropValueChanged);
+        e.setParam(2, 1);
+        e.setParam(3, 2);
+        e.setParam(4, 3);
+        e.setParam(5, 4);
+        e.setParam(6, 0);
+        e.setParam(7, 0);
+
+        for (
+            int i = EosEventConstants.EosPropPictureStyleStandard;
+            i < EosEventConstants.EosPropPictureStyleUserSet3;
+            ++i
+        ) {
+            if (i == EosEventConstants.EosPropPictureStyleBlackWhite) {
+                continue;
+            }
+            e.setParam(1, i);
+
+            String msg = EosEventFormat.format(e);
+            System.out.println("msg: " + msg);
+
+            assertTrue(msg.indexOf("Sharpness") >= 0);
+            assertTrue(msg.indexOf("Contrast") >= 0);
+            assertTrue(msg.indexOf("Saturation") >= 0);
+            assertTrue(msg.indexOf("Color") >= 0);
+            assertFalse(msg.indexOf("effect") >= 0);
+        }
+    }
+
+    public void testPropPictureStyleBlackAndWhite() {
+        EosEvent e = new EosEvent();
+
+        e.setCode(EosEventConstants.EosEventPropValueChanged);
+        e.setParam(1, EosEventConstants.EosPropPictureStyleBlackWhite);
+        e.setParam(2, 1);
+        e.setParam(3, 2);
+        e.setParam(4, 0);
+        e.setParam(5, 0);
+        e.setParam(6, 1);
+        e.setParam(7, 2);
+
+        String msg = EosEventFormat.format(e);
+
+        assertTrue(msg.indexOf("Sharpness") >= 0);
+        assertTrue(msg.indexOf("Contrast") >= 0);
+        assertFalse(msg.indexOf("Saturation") >= 0);
+        assertFalse(msg.indexOf("Color") >= 0);
+        assertTrue(msg.indexOf("effect") >= 0);
     }
 
 }

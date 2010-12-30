@@ -125,17 +125,15 @@ public class EosEventParser {
         int property = getNextS32();
         event.setParam(1, property);  // property changed
 
-        if (property == event.EosPropPictureStyleStandard) {
-            int size = getNextS32(); // Do we need it?
-            //
-            // TODO: we need to parse the parameters, as soon as I know how to
-            // do it ...
-            //
-            is.skip(size-4);
-            event.setParam(2, 0); // sharpeness
-            event.setParam(3, 0); // contrast
-            event.setParam(4, 0); // saturation
-            event.setParam(5, 0); // color tone
+        if ((property >= event.EosPropPictureStyleStandard) &&
+            (property <= event.EosPropPictureStyleUserSet3)) {
+            int size = getNextS32();
+            event.setParam(2, getNextS32()); // contrast
+            event.setParam(3, getNextS32()); // sharpness
+            event.setParam(4, getNextS32()); // saturation
+            event.setParam(5, getNextS32()); // color tone
+            event.setParam(6, getNextS32()); // filter effect
+            event.setParam(7, getNextS32()); // toning effect
         } else {
             //
             // default

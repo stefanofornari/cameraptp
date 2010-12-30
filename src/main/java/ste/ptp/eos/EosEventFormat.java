@@ -27,14 +27,39 @@ public class EosEventFormat implements EosEventConstants {
     public static String format(EosEvent e) {
         StringBuilder sb = new StringBuilder();
 
-        sb.append(getEventName(e.getCode()));
-        if (e.getParamCount() > 0) {
-          sb.append(" [")
-            .append(getPropertyName(e.getIntParam(1)))
-            .append(": ")
-            .append(e.getIntParam(2))
-            .append("]");
-            ;
+        int eventCode = e.getCode();
+
+        sb.append(getEventName(eventCode));
+        if (eventCode == EosEventPropValueChanged) {
+            int propCode = e.getIntParam(1);
+            sb.append(" [ ")
+              .append(getPropertyName(propCode))
+              .append(": ");
+
+            if ((propCode >= EosPropPictureStyleStandard) &&
+                (propCode <= EosPropPictureStyleUserSet3)) {
+                sb.append("(Sharpness: ")
+                  .append(e.getIntParam(3))
+                  .append(", Contrast: ");
+                if (propCode == EosPropPictureStyleBlackWhite) {
+                  sb.append(", Filter effect: ")
+                    .append(getFilterEffect(e.getIntParam(6)))
+                    .append(", Toning effect: ")
+                    .append(getToningEffect(e.getIntParam(7)));
+                } else {
+                  sb.append(e.getIntParam(2))
+                    .append(", Saturation: ")
+                    .append(e.getIntParam(4))
+                    .append(", Color tone: ")
+                    .append(e.getIntParam(5));
+                }
+                sb.append(")");
+            } else {
+                if (e.getParamCount()>1) {
+                    sb.append(e.getIntParam(2));
+                }
+            }
+            sb.append(" ]");
         }
 
         return sb.toString();
@@ -91,6 +116,60 @@ public class EosEventFormat implements EosEventConstants {
                 }
             }
         }
+        return "Unknown";
+    }
+
+    /**
+     * Returns the filter effect name given the code. Names are: <br>
+     * 0:None, 1:Yellow, 2:Orange, 3:Red, 4:Green
+     *
+     * @param code the filter effect code (0-4)
+     *
+     * @return the filter effect name
+     */
+    public static String getFilterEffect(int code) {
+        if ((code < 0) || (code > 4)) {
+            throw new IllegalArgumentException("code must be in he range 0-4");
+        }
+
+        switch (code) {
+            case 0: return "None";
+            case 1: return "Yellow";
+            case 2: return "Orange";
+            case 3: return "Red";
+            case 4: return "Green";
+        }
+
+        //
+        // We should never get here
+        //
+        return "Unknown";
+    }
+
+    /**
+     * Returns the toning effect name given the code. Names are: <br>
+     * 0:None, 1:Sepia, 2:Blue, 3:Purple, 4:Green
+     *
+     * @param code the toning effect code (0-4)
+     *
+     * @return the toning effect name
+     */
+    public static String getToningEffect(int code) {
+        if ((code < 0) || (code > 4)) {
+            throw new IllegalArgumentException("code must be in he range 0-4");
+        }
+
+        switch (code) {
+            case 0: return "None";
+            case 1: return "Sepia";
+            case 2: return "Blue";
+            case 3: return "Purple";
+            case 4: return "Green";
+        }
+
+        //
+        // We should never get here
+        //
         return "Unknown";
     }
             
