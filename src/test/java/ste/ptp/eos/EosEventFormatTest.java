@@ -80,19 +80,18 @@ public class EosEventFormatTest extends TestCase {
         EosEvent e = new EosEvent();
 
         e.setCode(EosEventConstants.EosEventPropValueChanged);
-        e.setParam(2, 1);
-        e.setParam(3, 2);
-        e.setParam(4, 3);
-        e.setParam(5, 4);
-        e.setParam(6, 0);
-        e.setParam(7, 0);
+        e.setParam(2, Boolean.FALSE);
+        e.setParam(3, 1);
+        e.setParam(4, 2);
+        e.setParam(5, 3);
+        e.setParam(6, 4);
 
         for (
             int i = EosEventConstants.EosPropPictureStyleStandard;
             i < EosEventConstants.EosPropPictureStyleUserSet3;
             ++i
         ) {
-            if (i == EosEventConstants.EosPropPictureStyleBlackWhite) {
+            if (i == EosEventConstants.EosPropPictureStyleMonochrome) {
                 continue;
             }
             e.setParam(1, i);
@@ -112,13 +111,12 @@ public class EosEventFormatTest extends TestCase {
         EosEvent e = new EosEvent();
 
         e.setCode(EosEventConstants.EosEventPropValueChanged);
-        e.setParam(1, EosEventConstants.EosPropPictureStyleBlackWhite);
-        e.setParam(2, 1);
-        e.setParam(3, 2);
-        e.setParam(4, 0);
-        e.setParam(5, 0);
-        e.setParam(6, 1);
-        e.setParam(7, 2);
+        e.setParam(1, EosEventConstants.EosPropPictureStyleMonochrome);
+        e.setParam(2, Boolean.TRUE);
+        e.setParam(3, 1);
+        e.setParam(4, 2);
+        e.setParam(5, 1);
+        e.setParam(6, 2);
 
         String msg = EosEventFormat.format(e);
 

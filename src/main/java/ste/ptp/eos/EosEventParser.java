@@ -35,7 +35,7 @@ import ste.ptp.PTPUnsupportedException;
  *
  * @author stefano fornari
  */
-public class EosEventParser {
+public class EosEventParser implements EosEventConstants {
 
     /**
      * The stream data are read from
@@ -106,13 +106,13 @@ public class EosEventParser {
     throws PTPException, IOException {
         int code = event.getCode();
         
-        if (code == event.EosEventPropValueChanged) {
+        if (code == EosEventPropValueChanged) {
             parsePropValueChangedParameters(event);
-        } else if (code == event.EosEventShutdownTimerUpdated) {
+        } else if (code == EosEventShutdownTimerUpdated) {
             //
             // No parameters
             //
-        } else if (code == event.EosEventCameraStatusChanged) {
+        } else if (code == EosEventCameraStatusChanged) {
              event.setParam(1, getNextS32());
         } else {
             is.skip(len);
@@ -125,15 +125,31 @@ public class EosEventParser {
         int property = getNextS32();
         event.setParam(1, property);  // property changed
 
-        if ((property >= event.EosPropPictureStyleStandard) &&
-            (property <= event.EosPropPictureStyleUserSet3)) {
+        if ((property >= EosPropPictureStyleStandard) &&
+            (property <= EosPropPictureStyleUserSet3)) {
+            boolean monochrome = (property == EosPropPictureStyleMonochrome);
             int size = getNextS32();
-            event.setParam(2, getNextS32()); // contrast
-            event.setParam(3, getNextS32()); // sharpness
-            event.setParam(4, getNextS32()); // saturation
-            event.setParam(5, getNextS32()); // color tone
-            event.setParam(6, getNextS32()); // filter effect
-            event.setParam(7, getNextS32()); // toning effect
+            if (size > 0x1C) {
+                //
+                // It is a EosPropPictureStyleUserXXX, let's read the type (then
+                // we do not use it)
+                //
+                monochrome = (getNextS32() == EosPropPictureStyleUserTypeMonochrome);
+            }
+            event.setParam(2, (monochrome) ? Boolean.TRUE : Boolean.FALSE);
+            event.setParam(3, getNextS32()); // contrast
+            event.setParam(4, getNextS32()); // sharpness
+            if (monochrome) {
+                getNextS32();
+                getNextS32();
+                event.setParam(5, getNextS32()); // filter effect
+                event.setParam(6, getNextS32()); // toning effect
+            } else {
+                event.setParam(5, getNextS32()); // saturation
+                event.setParam(6, getNextS32()); // color tone
+                getNextS32();
+                getNextS32();
+            }
         } else {
             //
             // default

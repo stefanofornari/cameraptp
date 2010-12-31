@@ -39,19 +39,19 @@ public class EosEventFormat implements EosEventConstants {
             if ((propCode >= EosPropPictureStyleStandard) &&
                 (propCode <= EosPropPictureStyleUserSet3)) {
                 sb.append("(Sharpness: ")
-                  .append(e.getIntParam(3))
-                  .append(", Contrast: ");
-                if (propCode == EosPropPictureStyleBlackWhite) {
+                  .append(e.getIntParam(4))
+                  .append(", Contrast: ")
+                  .append(e.getIntParam(3));
+                if (((Boolean)e.getParam(2)).booleanValue()) {
                   sb.append(", Filter effect: ")
-                    .append(getFilterEffect(e.getIntParam(6)))
+                    .append(getFilterEffect(e.getIntParam(5)))
                     .append(", Toning effect: ")
-                    .append(getToningEffect(e.getIntParam(7)));
+                    .append(getToningEffect(e.getIntParam(6)));
                 } else {
-                  sb.append(e.getIntParam(2))
-                    .append(", Saturation: ")
-                    .append(e.getIntParam(4))
+                  sb.append(", Saturation: ")
+                    .append(e.getIntParam(5))
                     .append(", Color tone: ")
-                    .append(e.getIntParam(5));
+                    .append(e.getIntParam(6));
                 }
                 sb.append(")");
             } else {

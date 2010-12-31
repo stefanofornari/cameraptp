@@ -100,14 +100,14 @@ public interface EosEventConstants {
     public static final int EosPropPictureStyleLandscape   = 0xD152;
     public static final int EosPropPictureStyleNeutral     = 0xD153;
     public static final int EosPropPictureStyleFaithful    = 0xD154;
-    public static final int EosPropPictureStyleBlackWhite  = 0xD155;
+    public static final int EosPropPictureStyleMonochrome  = 0xD155;
     public static final int EosPropPictureStyleUserSet1    = 0xD160;
     public static final int EosPropPictureStyleUserSet2    = 0xD161;
     public static final int EosPropPictureStyleUserSet3    = 0xD162;
     public static final int EosPropPictureStyleParam1      = 0xD170;
     public static final int EosPropPictureStyleParam2      = 0xD171;
     public static final int EosPropPictureStyleParam3      = 0xD172;
-    public static final int EosPropFlavorLUTParams         = 0xD17f;
+    public static final int EosPropFlavorLUTParams         = 0xD17F;
     public static final int EosPropCustomFunc1             = 0xD180;
     public static final int EosPropCustomFunc2             = 0xD181;
     public static final int EosPropCustomFunc3             = 0xD182;
@@ -118,12 +118,12 @@ public interface EosEventConstants {
     public static final int EosPropCustomFunc8             = 0xD187;
     public static final int EosPropCustomFunc9             = 0xD188;
     public static final int EosPropCustomFunc10            = 0xD189;
-    public static final int EosPropCustomFunc11            = 0xD18a;
-    public static final int EosPropCustomFunc12            = 0xD18b;
-    public static final int EosPropCustomFunc13            = 0xD18c;
-    public static final int EosPropCustomFunc14            = 0xD18d;
-    public static final int EosPropCustomFunc15            = 0xD18e;
-    public static final int EosPropCustomFunc16            = 0xD18f;
+    public static final int EosPropCustomFunc11            = 0xD18A;
+    public static final int EosPropCustomFunc12            = 0xD18B;
+    public static final int EosPropCustomFunc13            = 0xD18C;
+    public static final int EosPropCustomFunc14            = 0xD18D;
+    public static final int EosPropCustomFunc15            = 0xD18E;
+    public static final int EosPropCustomFunc16            = 0xD18F;
     public static final int EosPropCustomFunc17            = 0xD190;
     public static final int EosPropCustomFunc18            = 0xD191;
     public static final int EosPropCustomFunc19            = 0xD192;
@@ -202,4 +202,14 @@ public interface EosEventConstants {
     public static final int EosAperture_25   = 0x53;
     public static final int EosAperture_29   = 0x55;
     public static final int EosAperture_32   = 0x58;
+
+    /**
+     * User picture style type
+     */
+    public static final int EosPropPictureStyleUserTypeStandard   = 0x81;
+    public static final int EosPropPictureStyleUserTypePortrait   = 0x82;
+    public static final int EosPropPictureStyleUserTypeLandscape  = 0x83;
+    public static final int EosPropPictureStyleUserTypeNeutral    = 0x84;
+    public static final int EosPropPictureStyleUserTypeFaithful   = 0x85;
+    public static final int EosPropPictureStyleUserTypeMonochrome = 0x86;
 }

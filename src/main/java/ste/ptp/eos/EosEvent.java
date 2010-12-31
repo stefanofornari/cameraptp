@@ -78,8 +78,17 @@ public class EosEvent implements EosEventConstants {
         setParam(i, new Integer(value));
     }
 
+    public Object getParam(int i) {
+        if ((i < 1) || (i > getParamCount())) {
+            throw new IllegalArgumentException(
+                "index " + i + " out of range (0-" + getParamCount() + ")"
+            );
+        }
+        return params.get(i-1);
+    }
+
     public int getIntParam(int i) {
-        return ((Integer)params.get(i-1)).intValue();
+        return ((Integer)getParam(i)).intValue();
     }
 
     /**
