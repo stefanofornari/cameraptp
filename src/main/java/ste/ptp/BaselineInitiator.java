@@ -360,6 +360,24 @@ public class BaselineInitiator extends NameFactory implements Runnable {
         }
     }
 
+    /**
+     * Performs a PTP transaction, passing three command parameters.
+     * @param code the command code
+     * @param data data to be sent or received; or null
+     * @param p1 the first positional parameter
+     * @param p2 the second positional parameter
+     * @param p3 the third positional parameter
+     * @return response; check for code Response.OK before using
+     *	any positional response parameters
+     */
+    protected Response transact3(int code, Data data, int p1, int p2, int p3)
+            throws PTPException {
+        synchronized (session) {
+            Command command = new Command(code, session, p1, p2, p3);
+            return transactUnsync(command, data);
+        }
+    }
+
     // --------------------------------------------------------- Private methods
 
         // like getDeviceStatus(),

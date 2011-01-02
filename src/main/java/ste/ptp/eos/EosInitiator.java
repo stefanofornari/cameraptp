@@ -103,7 +103,7 @@ public class EosInitiator extends BaselineInitiator {
                 //
                 // TODO: log this information?
                 //
-                System.err.println("Skipping unsupported event");
+                //System.err.println("Skipping unsupported event");
             }
         }
 
@@ -158,6 +158,36 @@ public class EosInitiator extends BaselineInitiator {
             }
 
             throw new PTPException(msg, ret);
+        }
+    }
+
+    /**
+     * Retrieves a chunk of the object identified by the given object id.
+     *
+     * @param oid object id
+     * @param offset the offset to start from
+     * @param size the number of bytes to transfer
+     * @param data the Data object receiving the object
+     *
+     * @throws PTPException in case of errors
+     */
+    public void getPartialObject(int oid, int offset, int size, Data data)
+    throws PTPException {
+        Response ret =
+            transact3(Command.EosGetPartialObject, data, oid, offset, size);
+
+        if (ret.getCode() != Response.OK) {
+            throw new PTPException("Error reading new object", ret.getCode());
+        }
+    }
+
+    public void transferComplete(int oid)
+    throws PTPException {
+        Response ret =
+            transact1(Command.EosTransferComplete, null, oid);
+
+        if (ret.getCode() != Response.OK) {
+            throw new PTPException("Error reading new object", ret.getCode());
         }
     }
 }

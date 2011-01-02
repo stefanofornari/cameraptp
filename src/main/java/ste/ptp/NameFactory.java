@@ -27,10 +27,10 @@ package ste.ptp;
 public class NameFactory
 {
     // package private
-    NameFactory () { }
+    protected NameFactory () { }
 
     // package private
-    NameFactory updateFactory (int vendorExtensionId)
+    protected NameFactory updateFactory (int vendorExtensionId)
     {
 	switch (vendorExtensionId) {
 	    case 0:	return this;

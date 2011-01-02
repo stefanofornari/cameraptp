@@ -136,7 +136,7 @@ public class Command extends ParamVector {
     public static final int EosSetRemoteMode            = 0x9114;
     public static final int EosSetEventMode             = 0x9115;
     public static final int EosGetEvent                 = 0x9116;
-    public static final int EosGetTransferComplete      = 0x9117;
+    public static final int EosTransferComplete         = 0x9117;
     public static final int EosCancelTransfer           = 0x9118;
     public static final int EosResetTransfer            = 0x9119;
     public static final int EosPCHDDCapacity            = 0x911a;
@@ -246,7 +246,7 @@ public class Command extends ParamVector {
             case EosSetObjectTime:            return "EosSetObjectTime";
             case EosSetRemoteMode:            return "EosSetRemoteMode";
             case EosSetUILock:                return "EosSetUILock";
-            case EosGetTransferComplete:      return "EosGetTransferComplete";
+            case EosTransferComplete:      return "EosGetTransferComplete";
             case EosUpdateFirmware:           return "EosUpdateFirmware";
             case EosRequestDevicePropValue:   return "EosRequestDevicePropValue";
             case EosUpdateTransferCompleteDt: return "EosUpdateTransferCompleteDt";
