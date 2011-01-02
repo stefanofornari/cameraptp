@@ -102,23 +102,18 @@ public class EosEventFormat implements EosEventConstants {
      * @return the printable name of the given property
      */
     public static String getPropertyName(int code) {
-        Field[] fields = EosEventConstants.class.getDeclaredFields();
+        return getCodeName("EosProp", code);
+    }
 
-        for (Field f: fields) {
-            String name = f.getName();
-            if (name.startsWith("EosProp")) {
-                try {
-                    if (f.getInt(null) == code) {
-                        return name;
-                    }
-                } catch (Exception e) {
-                    //
-                    // Nothing to do
-                    //
-                }
-            }
-        }
-        return "Unknown";
+    /**
+     * Returns the printable name of the given image format
+     *
+     * @param code image format code
+     *
+     * @return the printable name of the given image format
+     */
+    public static String getImageFormatName(int code) {
+        return getCodeName("ImageFormat", code);
     }
 
     /**
@@ -179,14 +174,43 @@ public class EosEventFormat implements EosEventConstants {
 
     private static String formatEosEventObjectAddedEx(EosEvent event) {
         return String.format(
-            "Filename: %s, Size(bytes): %d, ObjectID: 0x%08X, StorageID: 0x%08X, ParentID: 0x%08X, Format: 0x%08X",
+            "Filename: %s, Size(bytes): %d, ObjectID: 0x%08X, StorageID: 0x%08X, ParentID: 0x%08X, Format: %s",
             event.getStringParam(6),
             event.getIntParam(5),
             event.getIntParam(1),
             event.getIntParam(2),
             event.getIntParam(3),
-            event.getIntParam(4)
+            getImageFormatName(event.getIntParam(4))
         );
+    }
+
+    /**
+     * Looks up and returns the name of the code give if there is a constant
+     * field in EosEventConstants which starts with the given prefix
+     *
+     * @param prefix the field name prefix
+     * @param code image format code
+     *
+     * @return the printable name of the given code
+     */
+    private static String getCodeName(String prefix, int code) {
+        Field[] fields = EosEventConstants.class.getDeclaredFields();
+
+        for (Field f: fields) {
+            String name = f.getName();
+            if (name.startsWith(prefix)) {
+                try {
+                    if (f.getInt(null) == code) {
+                        return name.substring(prefix.length());
+                    }
+                } catch (Exception e) {
+                    //
+                    // Nothing to do
+                    //
+                }
+            }
+        }
+        return "Unknown";
     }
             
 }

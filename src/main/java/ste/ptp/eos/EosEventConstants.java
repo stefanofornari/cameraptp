@@ -206,10 +206,98 @@ public interface EosEventConstants {
     /**
      * User picture style type
      */
-    public static final int EosPropPictureStyleUserTypeStandard   = 0x81;
-    public static final int EosPropPictureStyleUserTypePortrait   = 0x82;
-    public static final int EosPropPictureStyleUserTypeLandscape  = 0x83;
-    public static final int EosPropPictureStyleUserTypeNeutral    = 0x84;
-    public static final int EosPropPictureStyleUserTypeFaithful   = 0x85;
-    public static final int EosPropPictureStyleUserTypeMonochrome = 0x86;
+    public static final int EosPropPictureStyleUserTypeStandard    = 0x81;
+    public static final int EosPropPictureStyleUserTypePortrait    = 0x82;
+    public static final int EosPropPictureStyleUserTypeLandscape   = 0x83;
+    public static final int EosPropPictureStyleUserTypeNeutral     = 0x84;
+    public static final int EosPropPictureStyleUserTypeFaithful    = 0x85;
+    public static final int EosPropPictureStyleUserTypeMonochrome  = 0x86;
+
+    /**
+     * Image formats
+     */
+    public static final int ImageFormatEXIF_JPEG                       = 0x3801;
+    public static final int ImageFormatTIFF_EP                         = 0x3802;
+    public static final int ImageFormatFlashPix                        = 0x3803;
+    public static final int ImageFormatBMP                             = 0x3804;
+    public static final int ImageFormatCIFF                            = 0x3805;
+    public static final int ImageFormatUndefined_0x3806                = 0x3806;
+    public static final int ImageFormatGIF                             = 0x3807;
+    public static final int ImageFormatJFIF                            = 0x3808;
+    public static final int ImageFormatPCD                             = 0x3809;
+    public static final int ImageFormatPICT                            = 0x380A;
+    public static final int ImageFormatPNG                             = 0x380B;
+    public static final int ImageFormatUndefined_0x380C                = 0x380C;
+    public static final int ImageFormatTIFF                            = 0x380D;
+    public static final int ImageFormatTIFF_IT                         = 0x380E;
+    public static final int ImageFormatJP2                             = 0x380F;
+    public static final int ImageFormatJPX                             = 0x3810;
+    /* ptp v1.1 has only DNG new */
+    public static final int ImageFormatDNG                             = 0x3811;
+    /* Eastman Kodak extension ancillary format */
+    public static final int ImageFormatEK_M3U                          = 0xB002;
+    /* Canon extension */
+    public static final int ImageFormatCANON_CRW                       = 0xB101;
+    public static final int ImageFormatCANON_CRW3                      = 0xB103;
+    public static final int ImageFormatCANON_MOV                       = 0xB104;
+    /* CHDK specific raw mode */
+    public static final int ImageFormatCANON_CHDK_CRW                  = 0xB1FF;
+    /* MTP extensions */
+    public static final int ImageFormatMTP_MediaCard                   = 0xB211;
+    public static final int ImageFormatMTP_MediaCardGroup              = 0xb212;
+    public static final int ImageFormatMTP_Encounter                   = 0xb213;
+    public static final int ImageFormatMTP_EncounterBox                = 0xb214;
+    public static final int ImageFormatMTP_M4A                         = 0xb215;
+    public static final int ImageFormatMTP_ZUNEUNDEFINED               = 0xb217;
+    public static final int ImageFormatMTP_Firmware                    = 0xb802;
+    public static final int ImageFormatMTP_WindowsImageFormat          = 0xb881;
+    public static final int ImageFormatMTP_UndefinedAudio              = 0xb900;
+    public static final int ImageFormatMTP_WMA                         = 0xb901;
+    public static final int ImageFormatMTP_OGG                         = 0xb902;
+    public static final int ImageFormatMTP_AAC                         = 0xb903;
+    public static final int ImageFormatMTP_AudibleCodec                = 0xb904;
+    public static final int ImageFormatMTP_FLAC                        = 0xb906;
+    public static final int ImageFormatMTP_SamsungPlaylist             = 0xb909;
+    public static final int ImageFormatMTP_UndefinedVideo              = 0xb980;
+    public static final int ImageFormatMTP_WMV                         = 0xb981;
+    public static final int ImageFormatMTP_MP4                         = 0xb982;
+    public static final int ImageFormatMTP_MP2                         = 0xb983;
+    public static final int ImageFormatMTP_3GP                         = 0xb984;
+    public static final int ImageFormatMTP_UndefinedCollection         = 0xba00;
+    public static final int ImageFormatMTP_AbstractMultimediaAlbum     = 0xba01;
+    public static final int ImageFormatMTP_AbstractImageAlbum          = 0xba02;
+    public static final int ImageFormatMTP_AbstractAudioAlbum          = 0xba03;
+    public static final int ImageFormatMTP_AbstractVideoAlbum          = 0xba04;
+    public static final int ImageFormatMTP_AbstractAudioVideoPlaylist  = 0xba05;
+    public static final int ImageFormatMTP_AbstractContactGroup        = 0xba06;
+    public static final int ImageFormatMTP_AbstractMessageFolder       = 0xba07;
+    public static final int ImageFormatMTP_AbstractChapteredProduction = 0xba08;
+    public static final int ImageFormatMTP_AbstractAudioPlaylist       = 0xba09;
+    public static final int ImageFormatMTP_AbstractVideoPlaylist       = 0xba0a;
+    public static final int ImageFormatMTP_AbstractMediacast           = 0xba0b;
+    public static final int ImageFormatMTP_WPLPlaylist                 = 0xba10;
+    public static final int ImageFormatMTP_M3UPlaylist                 = 0xba11;
+    public static final int ImageFormatMTP_MPLPlaylist                 = 0xba12;
+    public static final int ImageFormatMTP_ASXPlaylist                 = 0xba13;
+    public static final int ImageFormatMTP_PLSPlaylist                 = 0xba14;
+    public static final int ImageFormatMTP_UndefinedDocument           = 0xba80;
+    public static final int ImageFormatMTP_AbstractDocument            = 0xba81;
+    public static final int ImageFormatMTP_XMLDocument                 = 0xba82;
+    public static final int ImageFormatMTP_MSWordDocument              = 0xba83;
+    public static final int ImageFormatMTP_MHTCompiledHTMLDocument     = 0xba84;
+    public static final int ImageFormatMTP_MSExcelSpreadsheetXLS       = 0xba85;
+    public static final int ImageFormatMTP_MSPowerpointPresentationPPT = 0xba86;
+    public static final int ImageFormatMTP_UndefinedMessage            = 0xbb00;
+    public static final int ImageFormatMTP_AbstractMessage             = 0xbb01;
+    public static final int ImageFormatMTP_UndefinedContact            = 0xbb80;
+    public static final int ImageFormatMTP_AbstractContact             = 0xbb81;
+    public static final int ImageFormatMTP_vCard2                      = 0xbb82;
+    public static final int ImageFormatMTP_vCard3                      = 0xbb83;
+    public static final int ImageFormatMTP_UndefinedCalendarItem       = 0xbe00;
+    public static final int ImageFormatMTP_AbstractCalendarItem        = 0xbe01;
+    public static final int ImageFormatMTP_vCalendar1                  = 0xbe02;
+    public static final int ImageFormatMTP_vCalendar2                  = 0xbe03;
+    public static final int ImageFormatMTP_UndefinedWindowsExecutable  = 0xbe80;
+    public static final int ImageFormatMTP_MediaCast                   = 0xbe81;
+    public static final int ImageFormatMTP_Section                     = 0xbe82;
 }

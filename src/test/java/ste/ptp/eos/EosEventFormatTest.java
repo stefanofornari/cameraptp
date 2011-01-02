@@ -51,7 +51,7 @@ public class EosEventFormatTest extends TestCase {
         String msg = EosEventFormat.format(e);
 
         assertTrue(msg.indexOf("EosEventPropValueChanged") >= 0);
-        assertTrue(msg.indexOf("EosPropAperture") >= 0);
+        assertTrue(msg.indexOf("Aperture") >= 0);
         assertTrue(msg.indexOf("29") >= 0);
 
         e.setCode(EosEventConstants.EosEventPropValueChanged);
@@ -61,7 +61,7 @@ public class EosEventFormatTest extends TestCase {
         msg = EosEventFormat.format(e);
         
         assertTrue(msg.indexOf("EosEventPropValueChanged") >= 0);
-        assertTrue(msg.indexOf("EosPropISOSpeed") >= 0);
+        assertTrue(msg.indexOf("ISOSpeed") >= 0);
         assertTrue(msg.indexOf("104") >= 0);
     }
 
@@ -132,21 +132,28 @@ public class EosEventFormatTest extends TestCase {
         e.setParam(1, 1);
         e.setParam(2, 2);
         e.setParam(3, 3);
-        e.setParam(4, 4);
+        e.setParam(4, EosEventConstants.ImageFormatCANON_CRW3);
         e.setParam(5, 5);
         e.setParam(6, "IMG_1979.CR2");
 
         String msg = EosEventFormat.format(e);
 
-        System.out.println(msg);
-
         assertTrue(msg.indexOf("EosEventObjectAddedEx") >= 0);
         assertTrue(msg.indexOf("0x00000001") >= 0);
         assertTrue(msg.indexOf("0x00000002") >= 0);
         assertTrue(msg.indexOf("0x00000003") >= 0);
-        assertTrue(msg.indexOf("0x00000004") >= 0);
+        assertTrue(msg.indexOf("CANON_CRW3") >= 0);
         assertTrue(msg.indexOf("5") >= 0);
         assertTrue(msg.indexOf("IMG_1979.CR2") >= 0);
+    }
+
+    public void testGetImageFormatName() {
+        final String[] NAMES = new String[] { "EXIF_JPEG", "CANON_CRW", "PNG", "Unknown" };
+        final int[]    CODES = new int[]    { 0x3801, 0xB101, 0x380B, 0x0001 };
+
+        for (int i=0; i<NAMES.length; ++i) {
+            assertEquals(NAMES[i], EosEventFormat.getImageFormatName(CODES[i]));
+        }
     }
 
 }

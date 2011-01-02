@@ -164,12 +164,12 @@ public class EosEventParser implements EosEventConstants {
     private void parseEosEventObjectAddedEx(EosEvent event)
     throws IOException {
         event.setParam(1, getNextS32()  );  // object id
-        event.setParam(2, getNextS16()  );  // storage id
-        event.setParam(3, getNextS16()  );  // parent id
-        event.setParam(4, getNextS32()  );  // format
-        is.skip(8);  // unknown + length
-        event.setParam(5, getNextS32()  );  // size ?
-        is.skip(8);  // unknown
+        event.setParam(2, getNextS32()  );  // storage id
+        event.setParam(4, getNextS16()  );  // format
+        is.skip(10);
+        event.setParam(5, getNextS32()  );  // size 
+        event.setParam(3, getNextS32()  );  // parent object id
+        is.skip(4);  // unknown
         event.setParam(6, getNextString()); // file name
         is.skip(4);
     }
