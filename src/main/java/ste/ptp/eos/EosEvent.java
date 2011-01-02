@@ -91,6 +91,10 @@ public class EosEvent implements EosEventConstants {
         return ((Integer)getParam(i)).intValue();
     }
 
+    public String getStringParam(int i) {
+        return (String)getParam(i);
+    }
+
     /**
      *
      * @return the number of parameters in this event

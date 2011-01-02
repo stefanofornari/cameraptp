@@ -30,10 +30,10 @@ public class EosEventFormat implements EosEventConstants {
         int eventCode = e.getCode();
 
         sb.append(getEventName(eventCode));
+        sb.append(" [ ");
         if (eventCode == EosEventPropValueChanged) {
             int propCode = e.getIntParam(1);
-            sb.append(" [ ")
-              .append(getPropertyName(propCode))
+            sb.append(getPropertyName(propCode))
               .append(": ");
 
             if ((propCode >= EosPropPictureStyleStandard) &&
@@ -59,8 +59,10 @@ public class EosEventFormat implements EosEventConstants {
                     sb.append(e.getIntParam(2));
                 }
             }
-            sb.append(" ]");
+        } else if (eventCode == EosEventObjectAddedEx) {
+            sb.append(formatEosEventObjectAddedEx(e));
         }
+        sb.append(" ]");
 
         return sb.toString();
     }
@@ -171,6 +173,20 @@ public class EosEventFormat implements EosEventConstants {
         // We should never get here
         //
         return "Unknown";
+    }
+
+    // --------------------------------------------------------- Private methods
+
+    private static String formatEosEventObjectAddedEx(EosEvent event) {
+        return String.format(
+            "Filename: %s, Size(bytes): %d, ObjectID: 0x%08X, StorageID: 0x%08X, ParentID: 0x%08X, Format: 0x%08X",
+            event.getStringParam(6),
+            event.getIntParam(5),
+            event.getIntParam(1),
+            event.getIntParam(2),
+            event.getIntParam(3),
+            event.getIntParam(4)
+        );
     }
             
 }

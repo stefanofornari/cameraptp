@@ -114,7 +114,9 @@ public class EosEventParser implements EosEventConstants {
             //
         } else if (code == EosEventCameraStatusChanged) {
              event.setParam(1, getNextS32());
-        } else {
+        } else if (code == EosEventObjectAddedEx) {
+             parseEosEventObjectAddedEx(event);
+        } else{
             is.skip(len);
             throw new PTPUnsupportedException("Unsupported event");
         }
@@ -159,6 +161,19 @@ public class EosEventParser implements EosEventConstants {
         
     }
 
+    private void parseEosEventObjectAddedEx(EosEvent event)
+    throws IOException {
+        event.setParam(1, getNextS32()  );  // object id
+        event.setParam(2, getNextS16()  );  // storage id
+        event.setParam(3, getNextS16()  );  // parent id
+        event.setParam(4, getNextS32()  );  // format
+        is.skip(8);  // unknown + length
+        event.setParam(5, getNextS32()  );  // size ?
+        is.skip(8);  // unknown
+        event.setParam(6, getNextString()); // file name
+        is.skip(4);
+    }
+
     /**
      * Reads and return the next signed 32 bit integer read from the input
      * stream.
@@ -167,7 +182,7 @@ public class EosEventParser implements EosEventConstants {
      *
      * @throws IOException in case of IO errors
      */
-    private  final int getNextS32 () throws IOException {
+    private  final int getNextS32() throws IOException {
 	int retval;
 
 	retval  = (0xff & is.read()) ;
@@ -176,6 +191,48 @@ public class EosEventParser implements EosEventConstants {
 	retval |=         is.read()  << 24;
 
 	return retval;
+    }
+
+    /**
+     * Reads and return the next signed 16 bit integer read from the input
+     * stream.
+     *
+     * @return the next signed 16 bit integer in the stream
+     *
+     * @throws IOException in case of IO errors
+     */
+    private final int getNextS16() throws IOException {
+	int retval;
+
+	retval  = (0xff & is.read()) ;
+	retval |= (0xff & is.read()) << 8;
+
+	return retval;
+    }
+
+    /**
+     * Reads and return the next string read from the input stream. Strings are
+     * zero (32 bit) terminated string
+     *
+     * @return the next string in the stream
+     *
+     * @throws IOException in case of IO errors
+     */
+    private final String getNextString() throws IOException {
+        StringBuilder retval = new StringBuilder();
+
+        char c = 0;
+        while ((c = (char)is.read()) != 0) {
+            retval.append(c);
+        }
+
+        //
+        // At this point we read the string and one zero. We need to read the
+        // remaining 3 zeros
+        //
+        is.skip(3);
+
+        return retval.toString();
     }
 
 }

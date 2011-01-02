@@ -6,6 +6,7 @@
 package ste.ptp.eos;
 
 import java.io.ByteArrayInputStream;
+import java.lang.reflect.Method;
 import junit.framework.TestCase;
 import ste.ptp.PTPUnsupportedException;
 
@@ -84,6 +85,35 @@ public class EosEventParserTest extends TestCase {
             // OK!
             //
         }
+    }
+
+    public void testGetNextString() throws Exception {
+        final byte[] BUF1 = new byte[] {
+          // (empty string)
+          (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00
+        };
+
+        final byte[] BUF2 = new byte[] {
+          // IMG_1979.CR2
+          (byte)0x49, (byte)0x4D, (byte)0x47, (byte)0x5F,
+          (byte)0x31, (byte)0x39, (byte)0x37, (byte)0x39,
+          (byte)0x2E, (byte)0x43, (byte)0x52, (byte)0x32,
+          (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00
+        };
+
+        Method m = EosEventParser.class.getDeclaredMethod("getNextString");
+        m.setAccessible(true);
+
+        EosEventParser p = new EosEventParser(
+                               new ByteArrayInputStream(BUF1)
+                           );
+
+        assertEquals("", m.invoke(p));
+
+        p = new EosEventParser(
+                new ByteArrayInputStream(BUF2)
+            );
+        assertEquals("IMG_1979.CR2", m.invoke(p));
     }
 
     public void testHasEvents() throws Exception {
@@ -363,6 +393,50 @@ public class EosEventParserTest extends TestCase {
         assertEquals(0, e.getIntParam(4));
         assertEquals(3, e.getIntParam(5));
         assertEquals(1, e.getIntParam(6));
+    }
+
+    public void testEosEventObjectAddedEx() throws Exception {
+        final byte[] BUF = {
+          (byte)0x3C, (byte)0x00, (byte)0x00, (byte)0x00,
+          (byte)0x81, (byte)0xC1, (byte)0x00, (byte)0x00,
+          // object ID
+          (byte)0xB1, (byte)0x7B, (byte)0x90, (byte)0x91,
+          // storage ID
+          (byte)0x01, (byte)0x00,
+          // parent ID
+          (byte)0x02, (byte)0x00,
+          // format
+          (byte)0x03, (byte)0xB1, (byte)0x00, (byte)0x00,
+          // unknown
+          (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+          // length
+          (byte)0x20, (byte)0x00, (byte)0x00, (byte)0x00,
+          // object size (?)
+          (byte)0xE5, (byte)0x0B, (byte)0x88, (byte)0x00,
+          // unknown
+          (byte)0x00, (byte)0x00, (byte)0x90, (byte)0x91,
+          (byte)0xB0, (byte)0x7B, (byte)0x90, (byte)0x91,
+          // filename (IMG_1979.CR2)
+          (byte)0x49, (byte)0x4D, (byte)0x47, (byte)0x5F,
+          (byte)0x31, (byte)0x39, (byte)0x37, (byte)0x39,
+          (byte)0x2E, (byte)0x43, (byte)0x52, (byte)0x32,
+          (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+          (byte)0x2E, (byte)0x30, (byte)0x1E, (byte)0x4D
+        };
+
+        EosEventParser parser = new EosEventParser(
+                                    new ByteArrayInputStream(BUF)
+                                );
+
+        EosEvent e = parser.getNextEvent();
+
+        assertEquals(EosEventConstants.EosEventObjectAddedEx, e.getCode());
+        assertEquals(0x91907BB1,     e.getIntParam(1)   ); // object ID
+        assertEquals(0x01,           e.getIntParam(2)   ); // storage ID
+        assertEquals(0x02,           e.getIntParam(3)   ); // parent ID
+        assertEquals(0xB103,         e.getIntParam(4)   ); // format
+        assertEquals(0x00880BE5,     e.getIntParam(5)   ); // size
+        assertEquals("IMG_1979.CR2", e.getStringParam(6)); // fiel name
     }
 
 }

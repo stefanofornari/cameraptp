@@ -104,4 +104,12 @@ public class EosEventTest extends TestCase {
         e.setParam(1, s);
         assertSame(s, e.getParam(1));
     }
+
+    public void testGetStringParam() {
+        EosEvent e = new EosEvent();
+
+        String s = "test";
+        e.setParam(1, s);
+        assertEquals(s, e.getStringParam(1));
+    }
 }

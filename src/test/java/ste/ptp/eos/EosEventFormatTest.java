@@ -73,7 +73,6 @@ public class EosEventFormatTest extends TestCase {
         String msg = EosEventFormat.format(e);
 
         assertTrue(msg.indexOf("EosEventShutdownTimerUpdated") >= 0);
-        assertTrue(msg.indexOf('[') < 0);
     }
 
     public void testPropPictureStyleNoBlackAndWhite() {
@@ -97,7 +96,6 @@ public class EosEventFormatTest extends TestCase {
             e.setParam(1, i);
 
             String msg = EosEventFormat.format(e);
-            System.out.println("msg: " + msg);
 
             assertTrue(msg.indexOf("Sharpness") >= 0);
             assertTrue(msg.indexOf("Contrast") >= 0);
@@ -125,6 +123,30 @@ public class EosEventFormatTest extends TestCase {
         assertFalse(msg.indexOf("Saturation") >= 0);
         assertFalse(msg.indexOf("Color") >= 0);
         assertTrue(msg.indexOf("effect") >= 0);
+    }
+
+    public void testEosEventObjectAddedEx() {
+        EosEvent e = new EosEvent();
+
+        e.setCode(EosEventConstants.EosEventObjectAddedEx);
+        e.setParam(1, 1);
+        e.setParam(2, 2);
+        e.setParam(3, 3);
+        e.setParam(4, 4);
+        e.setParam(5, 5);
+        e.setParam(6, "IMG_1979.CR2");
+
+        String msg = EosEventFormat.format(e);
+
+        System.out.println(msg);
+
+        assertTrue(msg.indexOf("EosEventObjectAddedEx") >= 0);
+        assertTrue(msg.indexOf("0x00000001") >= 0);
+        assertTrue(msg.indexOf("0x00000002") >= 0);
+        assertTrue(msg.indexOf("0x00000003") >= 0);
+        assertTrue(msg.indexOf("0x00000004") >= 0);
+        assertTrue(msg.indexOf("5") >= 0);
+        assertTrue(msg.indexOf("IMG_1979.CR2") >= 0);
     }
 
 }
