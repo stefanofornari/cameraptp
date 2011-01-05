@@ -3,6 +3,8 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.ste</groupId>
+    <artifactId>cameraptp</artifactId>
+    <name>Camera PTP</name>
     <packaging>jar</packaging>
     <version>1.0-SNAPSHOT</version>
     <url>http://maven.apache.org</url>
@@ -13,7 +15,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.0.2</version>
                 <configuration>
                     <source>1.6</source>
                     <target>1.6</target>
@@ -40,6 +41,9 @@
             <type>so</type>
         </dependency>
     </dependencies>
-    <artifactId>cameraptp</artifactId>
-    <name>Camera PTP</name>
+
+     <scm>
+        <connection>scm:git:git://github.com/stefanofornari/cameraptp</connection>
+        <url>http://github.com/stefanofornari/cameraptp/tree/master</url>
+    </scm>
 </project>
