@@ -46,4 +46,11 @@
         <connection>scm:git:git://github.com/stefanofornari/cameraptp</connection>
         <url>http://github.com/stefanofornari/cameraptp/tree/master</url>
     </scm>
+
+    <distributionManagement>
+        <repository>
+            <id>filesystem</id>
+            <url>file:./target/deploy</url>
+        </repository>
+    </distributionManagement>
 </project>
