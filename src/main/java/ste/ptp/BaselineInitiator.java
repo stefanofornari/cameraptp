@@ -260,6 +260,29 @@ public class BaselineInitiator extends NameFactory implements Runnable {
     }
 
     /**
+     * Closes the session (if active) and releases the device.
+     *
+     * @throws PTPException
+     */
+    public void close() throws PTPException {
+        if (isSessionActive()) {
+            try {
+                closeSession();
+            } catch (PTPException ignore) {
+                //
+                // Is we cannot close the session, there is nothing we can do
+                //
+            }
+        }
+
+        try {
+            device.close();
+        } catch (Exception ignore) {
+            throw new PTPException("Unable to close the USB device");
+        }
+    }
+
+    /**
      * @return true if the current session is active, false otherwise
      */
     public boolean isSessionActive() {
@@ -633,8 +656,8 @@ public class BaselineInitiator extends NameFactory implements Runnable {
                     int expected = data.getLength();
 
                     // Special handling for the write-to-N-mbytes-file case
-                    if (data instanceof FileData) {
-                        FileData fd = (FileData) data;
+                    if (data instanceof OutputStreamData) {
+                        OutputStreamData fd = (OutputStreamData) data;
 
                         fd.write(buf1, Data.HDR_LEN, len - Data.HDR_LEN);
                         if (len == inMaxPS && expected != inMaxPS) {
