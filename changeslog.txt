@@ -1,2 +1,5 @@
+
+20110205
+- using a generic outputstream instead of fileoutputstream 
 20110105
 - first release
