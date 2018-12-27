@@ -16,119 +16,116 @@
 //
 package ste.ptp;
 
-import ch.ntb.usb.*;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
+import java.util.List;
+import javax.usb.UsbClaimException;
+import javax.usb.UsbConst;
+import javax.usb.UsbControlIrp;
+import javax.usb.UsbDevice;
+import javax.usb.UsbEndpoint;
+import javax.usb.UsbException;
+import javax.usb.UsbInterface;
+import javax.usb.UsbPipe;
+import javax.usb.event.UsbPipeDataEvent;
+import javax.usb.event.UsbPipeErrorEvent;
+import javax.usb.event.UsbPipeListener;
+import ste.ptp.usb.USBUtils;
 
 /**
- * This initiates interactions with USB devices, supporting only
- * mandatory PTP-over-USB operations; both
- * "push" and "pull" modes are supported.  Note that there are some
- * operations that are mandatory for "push" responders and not "pull"
- * ones, and vice versa.  A subclass adds additional standardized
- * operations, which some PTP devices won't support.  All low
- * level interactions with the device are done by this class,
- * including especially error recovery.
+ * This initiates interactions with USB devices, supporting only mandatory
+ * PTP-over-USB operations; both "push" and "pull" modes are supported. Note
+ * that there are some operations that are mandatory for "push" responders and
+ * not "pull" ones, and vice versa. A subclass adds additional standardized
+ * operations, which some PTP devices won't support. All low level interactions
+ * with the device are done by this class, including especially error recovery.
  *
- * <p> The basic sequence of operations for any PTP or ISO 15470
- * initiator (client) is:  acquire the device; wrap it with this
- * driver class (or a subclass); issue operations;
- * close device.  PTP has the notion
- * of a (single) session with the device, and until you have an open
- * session you may only invoke {@link #getDeviceInfo} and
- * {@link #openSession} operations.  Moreover, devices may be used
- * both for reading images (as from a camera) and writing them
- * (as to a digital picture frame), depending on mode support.
+ * <p>
+ * The basic sequence of operations for any PTP or ISO 15470 initiator (client)
+ * is: acquire the device; wrap it with this driver class (or a subclass); issue
+ * operations; close device. PTP has the notion of a (single) session with the
+ * device, and until you have an open session you may only invoke
+ * {@link #getDeviceInfo} and {@link #openSession} operations. Moreover, devices
+ * may be used both for reading images (as from a camera) and writing them (as
+ * to a digital picture frame), depending on mode support.
  *
- * <p> Note that many of the IOExceptions thrown here are actually
- * going to be <code>usb.core.PTPException</code> values.  That may
- * help your application level recovery processing.  You should
- * assume that when any IOException is thrown, your current session
- * has been terminated.
+ * <p>
+ * Note that many of the IOExceptions thrown here are actually going to be
+ * <code>usb.core.PTPException</code> values. That may help your application
+ * level recovery processing. You should assume that when any IOException is
+ * thrown, your current session has been terminated.
  *
  * @see Initiator
  *
- * @version $Id: BaselineInitiator.java,v 1.17 2001/05/30 19:33:43 dbrownell Exp $
+ * @version $Id: BaselineInitiator.java,v 1.17 2001/05/30 19:33:43 dbrownell Exp
+ * $
  * @author David Brownell
  *
  * This class has been reworked by ste in order to make it compatible with
  * usbjava2. Also, this is more a derivative work than just an adaptation of the
  * original version. It has to serve the purposes of usbjava2 and cameracontrol.
  */
-public class BaselineInitiator extends NameFactory implements Runnable {
+public class BaselineInitiator extends NameFactory {
 
     ///////////////////////////////////////////////////////////////////
     // USB Class-specific control requests; from Annex D.5.2
-    private static final byte CLASS_CANCEL_REQ        = (byte) 0x64;
-    private static final byte CLASS_GET_EVENT_DATA    = (byte) 0x65;
-    private static final byte CLASS_DEVICE_RESET      = (byte) 0x66;
+    private static final byte CLASS_CANCEL_REQ = (byte) 0x64;
+    private static final byte CLASS_GET_EVENT_DATA = (byte) 0x65;
+    private static final byte CLASS_DEVICE_RESET = (byte) 0x66;
     private static final byte CLASS_GET_DEVICE_STATUS = (byte) 0x67;
 
     final static boolean DEBUG = false;
     final static boolean TRACE = false;
-    
-    protected Device                 device;
-    protected UsbInterfaceDescriptor intf;
-    protected UsbEndpointDescriptor  in;
-    protected int                    inMaxPS;
-    protected UsbEndpointDescriptor  out;
-    protected UsbEndpointDescriptor  intr;
-    protected Session                session;
-    protected DeviceInfo             info;
+
+    protected UsbDevice device;
+    protected UsbInterface iface;
+    protected UsbEndpoint in;
+    protected UsbEndpoint out;
+    protected UsbEndpoint intr;
+    protected int inMaxPS;
+
+    protected Session session;
+    protected DeviceInfo info;
 
     /**
-     * Constructs a class driver object, if the device supports
-     * operations according to Annex D of the PTP specification.
+     * Constructs a class driver object, if the device supports operations
+     * according to Annex D of the PTP specification.
      *
      * @param device the first PTP interface will be used
-     * @exception IllegalArgumentException if the device has no
-     *	Digital Still Imaging Class or PTP interfaces
+     * @exception IllegalArgumentException if the device has no Digital Still
+     * Imaging Class or PTP interfaces
      */
-    public BaselineInitiator(Device dev) throws PTPException {
+    public BaselineInitiator(UsbDevice dev) throws PTPException {
         try {
             if (dev == null) {
                 throw new IllegalArgumentException();
             }
             session = new Session();
             this.device = dev;
-            intf = dev.getPTPInterface();
-
-            UsbInterface usbInterface = intf.getUsbInterface();
-
-            if (usbInterface == null) {
+            iface = dev.getActiveUsbConfiguration().getUsbInterface((byte) 1);
+            if (iface == null) {
                 throw new PTPException("No PTP interfaces associated to the device");
             }
 
-            ArrayList<UsbEndpointDescriptor> endpoints = usbInterface.getAllEndpoints();
-            for (UsbEndpointDescriptor ep: endpoints) {
-                if (ep.isTypeBulk()) {
-                    if (ep.isInput()) {
-                        inMaxPS = ep.getMaxPacketSize();
+            List endpoints = iface.getUsbEndpoints();
+            for (int i = 0; i < endpoints.size(); ++i) {
+                UsbEndpoint ep = (UsbEndpoint) endpoints.get(i);
+                byte type = ep.getType();
+                boolean isInput = USBUtils.isInputDirection(ep.getDirection());
+                if (USBUtils.isBulkType(type)) {
+                    if (isInput) {
+                        inMaxPS = ep.getUsbEndpointDescriptor().wMaxPacketSize();
                         in = ep;
                     } else {
                         out = ep;
                     }
-                } else if (ep.isTypeInterrupt() && ep.isInput()) {
+                } else if (USBUtils.isInterruptType(type) && isInput) {
                     intr = ep;
                 }
             }
             endpointSanityCheck();
 
-            UsbDevice usbDevice = dev.getUsbDevice();
-            UsbConfigDescriptor[] descriptors = usbDevice.getConfig();
-
-            if ((descriptors == null) || (descriptors.length < 1)) {
-                throw new PTPException("Device with no descriptors!");
-            }
-
             // we want exclusive access to this interface.
-            dev.open(
-                descriptors[0].getConfigurationValue(),
-                intf.getInterface(),
-                intf.getAlternateSetting()
-            );
+            iface.claim();
 
             // clear out any previous state
             reset();
@@ -145,26 +142,27 @@ public class BaselineInitiator extends NameFactory implements Runnable {
                 info.factory = updateFactory(info.vendorExtensionId);
             }
             session.setFactory(this);
-        } catch (USBBusyException e) {
+        } catch (UsbClaimException x) {
             throw new PTPBusyException();
-        } catch (USBException e) {
+        } catch (UsbException e) {
             throw new PTPException(
-                "Error initializing the communication with the camera (" +
-                e.getMessage()
-                + ")" , e);
+                    "Error initializing the communication with the camera ("
+                    + e.getMessage()
+                    + ")", e);
         }
     }
 
     /**
      * @return the device
      */
-    public Device getDevice() {
+    public UsbDevice getDevice() {
         return device;
     }
 
-        /**
-     * Returns the last cached copy of the device info, or returns
-     * a newly cached copy.
+    /**
+     * Returns the last cached copy of the device info, or returns a newly
+     * cached copy.
+     *
      * @see #getDeviceInfoUncached
      */
     public DeviceInfo getDeviceInfo() throws PTPException {
@@ -175,46 +173,42 @@ public class BaselineInitiator extends NameFactory implements Runnable {
     }
 
     /**
-     * Sends a USB level CLASS_DEVICE_RESET control message.
-     * All PTP-over-USB devices support this operation.
-     * This is documented to clear stalls and camera-specific suspends,
-     * flush buffers, and close the current session.
+     * Sends a USB level CLASS_DEVICE_RESET control message. All PTP-over-USB
+     * devices support this operation. This is documented to clear stalls and
+     * camera-specific suspends, flush buffers, and close the current session.
      *
-     * <p> <em>TO BE DETERMINED:</em> How does this differ from a bulk
-     * protocol {@link Initiator#resetDevice ResetDevice} command?  That
-     * command is documented as very similar to this class operation.
-     * Ideally, only this control request will ever be used, since it
-     * works even when the bulk channels are halted.
+     * <p>
+     * <em>TO BE DETERMINED:</em> How does this differ from a bulk protocol
+     * {@link Initiator#resetDevice ResetDevice} command? That command is
+     * documented as very similar to this class operation. Ideally, only this
+     * control request will ever be used, since it works even when the bulk
+     * channels are halted.
      */
     public void reset() throws PTPException {
-        try {
-            device.controlMsg(
-                (byte) (ControlMessage.DIR_TO_DEVICE      |
-                        ControlMessage.TYPE_CLASS         |
-                        ControlMessage.RECIPIENT_INTERFACE),
-                CLASS_DEVICE_RESET,
-                0,
-                0,
-                new byte[0],
-                0,
-                Device.DEFAULT_TIMEOUT,
-                false
-            );
+        UsbControlIrp irp = device.createUsbControlIrp(
+                (byte) (UsbConst.REQUESTTYPE_DIRECTION_OUT
+                | UsbConst.REQUESTTYPE_TYPE_CLASS
+                | UsbConst.REQUESTTYPE_RECIPIENT_INTERFACE),
+                (byte) 102 /* CLASS_DEVICE_RESET*/, (short) 0, (short) 0
+        );
 
-            session.close();
-        } catch (USBException e) {
+        try {
+            irp.setData(new byte[0]);
+            device.syncSubmit(irp);
+        } catch (UsbException e) {
             throw new PTPException(
-                "Error initializing the communication with the camera (" +
-                e.getMessage()
-                + ")" , e);
+                    "Error initializing the communication with the camera ("
+                    + e.getMessage()
+                    + ")", e);
+        } finally {
+            session.close();
         }
     }
 
     /**
-     * Issues an OpenSession command to the device; may be used
-     * with all responders.  PTP-over-USB doesn't seem to support
-     * multisession operations; you must close a session before
-     * opening a new one.
+     * Issues an OpenSession command to the device; may be used with all
+     * responders. PTP-over-USB doesn't seem to support multisession operations;
+     * you must close a session before opening a new one.
      */
     public void openSession() throws PTPException {
         Command command;
@@ -235,8 +229,8 @@ public class BaselineInitiator extends NameFactory implements Runnable {
     }
 
     /**
-     * Issues a CloseSession command to the device; may be used
-     * with all responders.
+     * Issues a CloseSession command to the device; may be used with all
+     * responders.
      */
     public void closeSession() throws PTPException {
         Response response;
@@ -276,9 +270,9 @@ public class BaselineInitiator extends NameFactory implements Runnable {
         }
 
         try {
-            device.close();
-        } catch (Exception ignore) {
-            throw new PTPException("Unable to close the USB device");
+            iface.release();
+        } catch (UsbException x) {
+            throw new PTPException("Unable to close the USB device", x);
         }
     }
 
@@ -290,60 +284,53 @@ public class BaselineInitiator extends NameFactory implements Runnable {
             return session.isActive();
         }
     }
-    
+
     ///////////////////////////////////////////////////////////////////
     // mandatory for all responders:  generating events
     /**
-     * Makes the invoking Thread read and report events reported
-     * by the PTP responder, until the Initiator is closed.
+     * Read and output events reported by the PTP responder
      */
-    @Override
-    public void run() {
+    public void listenForEvent() {
+        UsbPipe pipe = intr.getUsbPipe();
+
         try {
+            pipe.open();
+            System.err.println("START listening on interrupt endpoint");
+            pipe.addUsbPipeListener(new UsbPipeListener() {
 
-            System.err.println("START event thread");
-            for (;;) {
-                try {
-                    byte buf[];
-                    Event event;
-
-                    // FIXME:  this seemed to stop other threads ...
-                    // likely usbdevfs can't handle concurrent I/O
-                    // requests on its file descriptors!
-
-                    event = new Event(intr.recvInterrupt(), this);
-                    if (TRACE) {
-                        System.err.println("EVENT: " + event.toString());
-                    }
-
-                } catch (Exception e) {
-                    // if it's a timeout, fine ...
-
-                    if (DEBUG) {
-                        e.printStackTrace();
-                    }
+                @Override
+                public void errorEventOccurred(UsbPipeErrorEvent event) {
+                    System.err.println("Error while listening interrupt endpoint");
+                    System.err.println(event.getUsbException());
                 }
-            }
-        } catch (Exception e) {
+
+                @Override
+                public void dataEventOccurred(UsbPipeDataEvent event) {
+                    if (TRACE) {
+                        System.out.println("data occur");
+                    }
+
+                }
+            });
+        } catch (UsbException e) {
             if (DEBUG) {
                 e.printStackTrace();
             }
         }
-        System.err.println("EXIT event thread");
     }
 
     // ------------------------------------------------------- Protected methods
-
     ///////////////////////////////////////////////////////////////////
     /**
      * Performs a PTP transaction, passing zero command parameters.
+     *
      * @param code the command code
      * @param data data to be sent or received; or null
-     * @return response; check for code Response.OK before using
-     *	any positional response parameters
+     * @return response; check for code Response.OK before using any positional
+     * response parameters
      */
     protected Response transact0(int code, Data data)
-    throws PTPException {
+            throws PTPException {
         synchronized (session) {
             Command command = new Command(code, session);
             return transactUnsync(command, data);
@@ -352,14 +339,15 @@ public class BaselineInitiator extends NameFactory implements Runnable {
 
     /**
      * Performs a PTP transaction, passing one command parameter.
+     *
      * @param code the command code
      * @param data data to be sent or received; or null
      * @param p1 the first positional parameter
-     * @return response; check for code Response.OK before using
-     *	any positional response parameters
+     * @return response; check for code Response.OK before using any positional
+     * response parameters
      */
     protected Response transact1(int code, Data data, int p1)
-    throws PTPException {
+            throws PTPException {
         synchronized (session) {
             Command command = new Command(code, session, p1);
             return transactUnsync(command, data);
@@ -368,12 +356,13 @@ public class BaselineInitiator extends NameFactory implements Runnable {
 
     /**
      * Performs a PTP transaction, passing two command parameters.
+     *
      * @param code the command code
      * @param data data to be sent or received; or null
      * @param p1 the first positional parameter
      * @param p2 the second positional parameter
-     * @return response; check for code Response.OK before using
-     *	any positional response parameters
+     * @return response; check for code Response.OK before using any positional
+     * response parameters
      */
     protected Response transact2(int code, Data data, int p1, int p2)
             throws PTPException {
@@ -385,13 +374,14 @@ public class BaselineInitiator extends NameFactory implements Runnable {
 
     /**
      * Performs a PTP transaction, passing three command parameters.
+     *
      * @param code the command code
      * @param data data to be sent or received; or null
      * @param p1 the first positional parameter
      * @param p2 the second positional parameter
      * @param p3 the third positional parameter
-     * @return response; check for code Response.OK before using
-     *	any positional response parameters
+     * @return response; check for code Response.OK before using any positional
+     * response parameters
      */
     protected Response transact3(int code, Data data, int p1, int p2, int p3)
             throws PTPException {
@@ -402,8 +392,7 @@ public class BaselineInitiator extends NameFactory implements Runnable {
     }
 
     // --------------------------------------------------------- Private methods
-
-        // like getDeviceStatus(),
+    // like getDeviceStatus(),
     // but clears stalled endpoints before returning
     // (except when exceptions are thrown)
     // returns -1 iff device wouldn't return OK status
@@ -416,12 +405,12 @@ public class BaselineInitiator extends NameFactory implements Runnable {
             while ((buf.offset + 4) <= buf.length) {
                 int ep = buf.nextS32();
 
-                if (in.getEndpointAddress() == ep) {
+                if (in.getUsbEndpointDescriptor().bEndpointAddress() == ep) {
                     if (TRACE) {
                         System.err.println("clearHalt in");
                     }
                     clearHalt(in);
-                } else if (out.getEndpointAddress() == ep) {
+                } else if (out.getUsbEndpointDescriptor().bEndpointAddress() == ep) {
                     if (TRACE) {
                         System.err.println("clearHalt out");
                     }
@@ -471,21 +460,19 @@ public class BaselineInitiator extends NameFactory implements Runnable {
     // returns Response.OK, Response.DeviceBusy, etc
     // per fig D.6, response may hold stalled endpoint numbers
     private int getDeviceStatus(Buffer buf)
-    throws PTPException {
+            throws PTPException {
+        UsbControlIrp irp = device.createUsbControlIrp(
+                (byte) (UsbConst.REQUESTTYPE_DIRECTION_IN
+                | UsbConst.REQUESTTYPE_TYPE_CLASS
+                | UsbConst.REQUESTTYPE_RECIPIENT_INTERFACE),
+                (byte) 103 /* CLASS_GET_DEVICE_STATUS*/, (short) 0, (short) 0
+        );
+        byte[] data = new byte[33];
+
         try {
-            byte[] data = new byte[33];
-            device.controlMsg(
-                (byte) (ControlMessage.DIR_TO_HOST        |
-                        ControlMessage.TYPE_CLASS         |
-                        ControlMessage.RECIPIENT_INTERFACE),
-                CLASS_GET_DEVICE_STATUS,
-                0,
-                0,
-                data,
-                data.length, // force short reads
-                Device.DEFAULT_TIMEOUT,
-                false
-            );
+            irp.setData(data);
+            irp.setLength(data.length);
+            device.syncSubmit(irp);
 
             if (buf == null) {
                 buf = new Buffer(data);
@@ -499,11 +486,11 @@ public class BaselineInitiator extends NameFactory implements Runnable {
             }
 
             return buf.getU16(2);
-        }  catch (USBException e) {
+        } catch (UsbException e) {
             throw new PTPException(
-                "Error initializing the communication with the camera (" +
-                e.getMessage()
-                + ")" , e);
+                    "Error initializing the communication with the device ("
+                    + e.getMessage()
+                    + ")", e);
         }
     }
 
@@ -512,12 +499,12 @@ public class BaselineInitiator extends NameFactory implements Runnable {
     ///////////////////////////////////////////////////////////////////
     // mandatory for all responders
     /**
-     * Issues a GetDeviceInfo command to the device; may be used
-     * with all responders.  This is the only generic PTP command
-     * that may be issued both inside or outside of a session.
+     * Issues a GetDeviceInfo command to the device; may be used with all
+     * responders. This is the only generic PTP command that may be issued both
+     * inside or outside of a session.
      */
     private DeviceInfo getDeviceInfoUncached()
-    throws PTPException {
+            throws PTPException {
         DeviceInfo data = new DeviceInfo(this);
         Response response;
 
@@ -543,7 +530,7 @@ public class BaselineInitiator extends NameFactory implements Runnable {
     // - on return, session was only closed by CloseSession
     // - on PTPException, device (and session!) has been reset
     private Response transactUnsync(Command command, Data data)
-    throws PTPException {
+            throws PTPException {
         if (!"command".equals(command.getBlockTypeName(command.getBlockType()))) {
             throw new IllegalArgumentException(command.toString());
         }
@@ -572,19 +559,21 @@ public class BaselineInitiator extends NameFactory implements Runnable {
         Response response;
         boolean abort = true;
 
+        UsbPipe pOut = out.getUsbPipe();
+        UsbPipe pIn = out.getUsbPipe();
         try {
-            OutputStream stream = device.getOutputStream(out);
+            pOut.open(); pIn.open();
 
             // issue command
             // rejected commands will stall both EPs
             if (TRACE) {
                 System.err.println(command.toString());
             }
-            stream.write(command.data, 0, command.length);
+            pOut.syncSubmit(command.data);
 
             // may need to terminate request with zero length packet
-            if ((command.length % out.getMaxPacketSize()) == 0) {
-                stream.write(command.data, 0, 0);
+            if ((command.length % out.getUsbEndpointDescriptor().wMaxPacketSize()) == 0) {
+                pOut.syncSubmit(new byte[0]);
             }
 
             // data exchanged?
@@ -605,7 +594,6 @@ public class BaselineInitiator extends NameFactory implements Runnable {
                     if (data instanceof FileSendData) {
                         FileSendData fd = (FileSendData) data;
                         int len = fd.data.length - fd.offset;
-                        int temp;
 
                         // fill up the rest of the first buffer
                         len = fd.read(fd.data, fd.offset, len);
@@ -616,7 +604,7 @@ public class BaselineInitiator extends NameFactory implements Runnable {
 
                         for (;;) {
                             // write data or terminating packet
-                            stream.write(fd.data, 0, len);
+                            pOut.syncSubmit(fd.data);
                             if (len != fd.data.length) {
                                 break;
                             }
@@ -629,16 +617,16 @@ public class BaselineInitiator extends NameFactory implements Runnable {
 
                     } else {
                         // write data and maybe terminating packet
-                        stream.write(data.data, 0, data.length);
-                        if ((data.length % out.getMaxPacketSize()) == 0) {
-                            stream.write(data.data, 0, 0);
+                        pOut.syncSubmit(data.data);
+                        if ((data.length % out.getUsbEndpointDescriptor().wMaxPacketSize()) == 0) {
+                            pOut.syncSubmit(new byte[0]);
                         }
                     }
 
                     // read data?
                 } else {
                     byte buf1[] = new byte[inMaxPS];
-                    int len = device.getInputStream(in).read(buf1);
+                    int len = pIn.syncSubmit(buf1);
 
                     // Get the first bulk packet(s), check header for length
                     data.data = buf1;
@@ -661,27 +649,23 @@ public class BaselineInitiator extends NameFactory implements Runnable {
 
                         fd.write(buf1, Data.HDR_LEN, len - Data.HDR_LEN);
                         if (len == inMaxPS && expected != inMaxPS) {
-                            InputStream is = device.getInputStream(in);
-
                             // at max usb data rate, 128K ~= 0.11 seconds
                             // typically it's more time than that
                             buf1 = new byte[128 * 1024];
                             do {
-                                len = is.read(buf1);
+                                len = pIn.syncSubmit(buf1);
                                 fd.write(buf1, 0, len);
                             } while (len == buf1.length);
                         }
-
                     } else if (len == inMaxPS && expected != inMaxPS) {
                         buf1 = new byte[expected];
                         System.arraycopy(data.data, 0, buf1, 0, len);
                         data.data = buf1;
-                        data.length += device.getInputStream(in).read(buf1, len, expected - len);
+                        data.length += pIn.syncSubmit(buf1); //  ????
                     }
 
                     // if ((expected % inMaxPS) == 0)
                     //	... next packet will be zero length
-
                     // and do whatever parsing needs to be done
                     data.parse();
                 }
@@ -690,11 +674,11 @@ public class BaselineInitiator extends NameFactory implements Runnable {
             // (short) read the response
             // this won't stall anything
             byte buf[] = new byte[Response.MAX_LEN];
-            int len = device.getInputStream(in).read(buf);
+            int len = pIn.syncSubmit(buf);
 
             // ZLP terminated previous data?
             if (len == 0) {
-                len = device.getInputStream(in).read(buf);
+                len = pIn.syncSubmit(buf);
             }
 
             response = new Response(buf, len, this);
@@ -705,48 +689,11 @@ public class BaselineInitiator extends NameFactory implements Runnable {
             abort = false;
             return response;
 
-        } catch (USBException e) {
+        } catch (UsbException | IOException x) {
             if (DEBUG) {
-                e.printStackTrace();
+                x.printStackTrace();
             }
-
-            // PTP devices will stall bulk EPs on error ... recover.
-            if (e.isStalled()) {
-                int status = -1;
-
-                try {
-                    // NOTE:  this is the request's response code!  It can't
-                    // be gotten otherwise; despite current specs, this is a
-                    // "control-and-bulk" protocol, NOT "bulk-only"; or more
-                    // structurally, the protocol handles certain operations
-                    // concurrently.
-                    status = getClearStatus();
-                } catch (PTPException x) {
-                    if (DEBUG) {
-                        x.printStackTrace();
-                    }
-                }
-
-                // something's very broken
-                if (status == Response.OK || status == -1) {
-                    throw new PTPException(e.getMessage(), e);
-                }
-
-                // treat status code as the device's response
-                response = new Response(new byte[Response.HDR_LEN], this);
-                response.putHeader(Response.HDR_LEN, 3 /*response*/,
-                        status, command.getXID());
-                if (TRACE) {
-                    System.err.println("STALLED: " + response.toString());
-                }
-
-                abort = false;
-                return response;
-            }
-            throw new PTPException(e.getMessage(), e);
-
-        } catch (IOException e) {
-            throw new PTPException(e.getMessage(), e);
+            throw new PTPException(x.getMessage(), x);
 
         } finally {
             if (abort) {
@@ -771,7 +718,7 @@ public class BaselineInitiator extends NameFactory implements Runnable {
         }
     }
 
-    private void clearHalt(UsbEndpointDescriptor e) {
+    private void clearHalt(UsbEndpoint e) {
         //
         // TODO: implement clearHalt of an endpoint
         //

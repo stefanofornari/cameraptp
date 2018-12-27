@@ -17,53 +17,45 @@
 
 package ste.ptp.eos;
 
-import junit.framework.TestCase;
+import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.BDDAssertions.then;
+import org.junit.Test;
 
 /**
  *
  * @author ste
  */
-public class EosEventTest extends TestCase {
-    
-    public EosEventTest(String testName) {
-        super(testName);
-    }
+public class BugFreeEosEvent {
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-    }
-
-    @Override
-    protected void tearDown() throws Exception {
-        super.tearDown();
-    }
-
-    public void testCode() {
+    @Test
+    public void code() {
         EosEvent e = new EosEvent();
 
         e.setCode(0x10);
-        assertEquals(0x10, e.getCode());
+        then(e.getCode()).isEqualTo(0x10);
 
         e.setCode(-0x10);
-        assertEquals(-0x10, e.getCode());
+        then(e.getCode()).isEqualTo(-0x10);
     }
 
-    public void testParam1() {
+    @Test
+    public void param1() {
         EosEvent e = new EosEvent();
 
         e.setParam(1, (int)0x11);
-        assertEquals(0x11, e.getIntParam(1));
+        then(e.getIntParam(1)).isEqualTo(0x11);
     }
 
-    public void testParam2() {
+    @Test
+    public void param2() {
         EosEvent e = new EosEvent();
 
         e.setParam(2, (int)0x12);
-        assertEquals(0x12, e.getIntParam(2));
+        then(e.getIntParam(2)).isEqualTo(0x12);
     }
 
-    public void testInvalidParamIndex() {
+    @Test
+    public void invalid_parameter_index() {
         EosEvent e = new EosEvent();
 
         try {
@@ -97,19 +89,21 @@ public class EosEventTest extends TestCase {
         }
     }
 
-    public void testGetParam() {
+    @Test
+    public void get_param() {
         EosEvent e = new EosEvent();
 
         String s = new String();
         e.setParam(1, s);
-        assertSame(s, e.getParam(1));
+        then(e.getParam(1)).isSameAs(s);
     }
 
+    @Test
     public void testGetStringParam() {
         EosEvent e = new EosEvent();
 
         String s = "test";
         e.setParam(1, s);
-        assertEquals(s, e.getStringParam(1));
+        then(e.getStringParam(1)).isEqualTo(s);
     }
 }

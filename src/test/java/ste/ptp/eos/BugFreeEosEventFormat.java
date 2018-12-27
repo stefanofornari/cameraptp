@@ -17,65 +17,55 @@
 
 package ste.ptp.eos;
 
-import junit.framework.TestCase;
+import static org.assertj.core.api.BDDAssertions.then;
+import org.junit.Test;
 
 /**
  *
  * @author ste
  */
-public class EosEventFormatTest extends TestCase {
+public class BugFreeEosEventFormat {
 
     private EosEvent e;
-    
-    public EosEventFormatTest(String testName) {
-        super(testName);
-    }
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-    }
-
-    @Override
-    protected void tearDown() throws Exception {
-        super.tearDown();
-    }
-
-    public void testFormat2Parameters() {
+    @Test
+    public void format_2_parameters() {
         EosEvent e = new EosEvent();
-        
+
         e.setCode(EosEventConstants.EosEventPropValueChanged);
         e.setParam(1, EosEventConstants.EosPropAperture);
         e.setParam(2, 0x001D);
 
         String msg = EosEventFormat.format(e);
 
-        assertTrue(msg.indexOf("EosEventPropValueChanged") >= 0);
-        assertTrue(msg.indexOf("Aperture") >= 0);
-        assertTrue(msg.indexOf("29") >= 0);
+        then(msg).contains("EosEventPropValueChanged")
+                 .contains("Aperture")
+                 .contains("29");
 
         e.setCode(EosEventConstants.EosEventPropValueChanged);
         e.setParam(1, EosEventConstants.EosPropISOSpeed);
         e.setParam(2, 0x0068);
 
         msg = EosEventFormat.format(e);
-        
-        assertTrue(msg.indexOf("EosEventPropValueChanged") >= 0);
-        assertTrue(msg.indexOf("ISOSpeed") >= 0);
-        assertTrue(msg.indexOf("104") >= 0);
+
+        then(msg).contains("EosEventPropValueChanged")
+                 .contains("ISOSpeed")
+                 .contains("104");
     }
 
-    public void testFormat0Prameters() {
+    @Test
+    public void format_0_parameters() {
         EosEvent e = new EosEvent();
 
         e.setCode(EosEventConstants.EosEventShutdownTimerUpdated);
 
         String msg = EosEventFormat.format(e);
 
-        assertTrue(msg.indexOf("EosEventShutdownTimerUpdated") >= 0);
+        then(msg).contains("EosEventShutdownTimerUpdated");
     }
 
-    public void testPropPictureStyleNoBlackAndWhite() {
+    @Test
+    public void prop_picture_style_no_black_and_white() {
         EosEvent e = new EosEvent();
 
         e.setCode(EosEventConstants.EosEventPropValueChanged);
@@ -97,15 +87,16 @@ public class EosEventFormatTest extends TestCase {
 
             String msg = EosEventFormat.format(e);
 
-            assertTrue(msg.indexOf("Sharpness") >= 0);
-            assertTrue(msg.indexOf("Contrast") >= 0);
-            assertTrue(msg.indexOf("Saturation") >= 0);
-            assertTrue(msg.indexOf("Color") >= 0);
-            assertFalse(msg.indexOf("effect") >= 0);
+            then(msg).contains("Sharpness")
+                     .contains("Contrast")
+                     .contains("Saturation")
+                     .contains("Color")
+                     .doesNotContain("effect");
         }
     }
 
-    public void testPropPictureStyleBlackAndWhite() {
+    @Test
+    public void prop_picture_style_black_and_white() {
         EosEvent e = new EosEvent();
 
         e.setCode(EosEventConstants.EosEventPropValueChanged);
@@ -118,14 +109,15 @@ public class EosEventFormatTest extends TestCase {
 
         String msg = EosEventFormat.format(e);
 
-        assertTrue(msg.indexOf("Sharpness") >= 0);
-        assertTrue(msg.indexOf("Contrast") >= 0);
-        assertFalse(msg.indexOf("Saturation") >= 0);
-        assertFalse(msg.indexOf("Color") >= 0);
-        assertTrue(msg.indexOf("effect") >= 0);
+        then(msg).contains("Sharpness")
+                 .contains("Contrast")
+                 .doesNotContain("Saturation")
+                 .doesNotContain("Color")
+                 .contains("effect");
     }
 
-    public void testEosEventObjectAddedEx() {
+    @Test
+    public void eos_EventObjectAddedEx() {
         EosEvent e = new EosEvent();
 
         e.setCode(EosEventConstants.EosEventObjectAddedEx);
@@ -138,21 +130,22 @@ public class EosEventFormatTest extends TestCase {
 
         String msg = EosEventFormat.format(e);
 
-        assertTrue(msg.indexOf("EosEventObjectAddedEx") >= 0);
-        assertTrue(msg.indexOf("0x00000001") >= 0);
-        assertTrue(msg.indexOf("0x00000002") >= 0);
-        assertTrue(msg.indexOf("0x00000003") >= 0);
-        assertTrue(msg.indexOf("CANON_CRW3") >= 0);
-        assertTrue(msg.indexOf("5") >= 0);
-        assertTrue(msg.indexOf("IMG_1979.CR2") >= 0);
+        then(msg).contains("EosEventObjectAddedEx")
+                 .contains("0x00000001")
+                 .contains("0x00000002")
+                 .contains("0x00000003")
+                 .contains("CANON_CRW3")
+                 .contains("5")
+                 .contains("IMG_1979.CR2");
     }
 
-    public void testGetImageFormatName() {
+    @Test
+    public void get_image_format_name() {
         final String[] NAMES = new String[] { "EXIF_JPEG", "CANON_CRW", "PNG", "Unknown" };
         final int[]    CODES = new int[]    { 0x3801, 0xB101, 0x380B, 0x0001 };
 
         for (int i=0; i<NAMES.length; ++i) {
-            assertEquals(NAMES[i], EosEventFormat.getImageFormatName(CODES[i]));
+            then(EosEventFormat.getImageFormatName(CODES[i])).isEqualTo(NAMES[i]);
         }
     }
 

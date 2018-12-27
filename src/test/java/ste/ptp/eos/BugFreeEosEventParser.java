@@ -7,14 +7,16 @@ package ste.ptp.eos;
 
 import java.io.ByteArrayInputStream;
 import java.lang.reflect.Method;
-import junit.framework.TestCase;
+import static junit.framework.TestCase.fail;
+import static org.assertj.core.api.BDDAssertions.then;
+import org.junit.Test;
 import ste.ptp.PTPUnsupportedException;
 
 /**
  *
  * @author ste
  */
-public class EosEventParserTest extends TestCase {
+public class BugFreeEosEventParser {
 
     private static final byte[] EOS_PROP_VALUE_CHANGED = {
       (byte)0x10, (byte)0x00, (byte)0x00, (byte)0x00,
@@ -38,32 +40,20 @@ public class EosEventParserTest extends TestCase {
 
     private static final byte[] UNSUP_SUP_EVENT = {
       (byte)0x04, (byte)0x00, (byte)0x00, (byte)0x00,
-      
+
       (byte)0x10, (byte)0x00, (byte)0x00, (byte)0x00,
       (byte)0x89, (byte)0xC1, (byte)0x00, (byte)0x00,
       (byte)0x02, (byte)0xD1, (byte)0x00, (byte)0x00,
       (byte)0x6D, (byte)0x00, (byte)0x00, (byte)0x00
     };
-    
-    public EosEventParserTest(String testName) {
-        super(testName);
-    }
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-    }
-
-    @Override
-    protected void tearDown() throws Exception {
-        super.tearDown();
-    }
-
-    public void testConstructorValidIS() {
+    @Test
+    public void constructor_with_valid_id() {
         new EosEventParser(new ByteArrayInputStream(new byte[0]));
     }
 
-    public void testConstructorInValidIS() {
+    @Test
+    public void constructor_with_invalid_id() {
         try {
             new EosEventParser(null);
             fail("is not checked");
@@ -74,7 +64,8 @@ public class EosEventParserTest extends TestCase {
         }
     }
 
-    public void testInvalidInitialization() throws Exception {
+    @Test
+    public void invalid_initialization() throws Exception {
         EosEventParser parser = null;
 
         try {
@@ -87,7 +78,8 @@ public class EosEventParserTest extends TestCase {
         }
     }
 
-    public void testGetNextString() throws Exception {
+    @Test
+    public void get_next_string() throws Exception {
         final byte[] BUF1 = new byte[] {
           // (empty string)
           (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00
@@ -108,35 +100,38 @@ public class EosEventParserTest extends TestCase {
                                new ByteArrayInputStream(BUF1)
                            );
 
-        assertEquals("", m.invoke(p));
+        then(m.invoke(p)).isEqualTo("");
 
         p = new EosEventParser(
                 new ByteArrayInputStream(BUF2)
             );
-        assertEquals("IMG_1979.CR2", m.invoke(p));
+        then(m.invoke(p)).isEqualTo("IMG_1979.CR2");
     }
 
-    public void testHasEvents() throws Exception {
+    @Test
+    public void parser_with_events() throws Exception {
         EosEventParser parser = new EosEventParser(
                                     new ByteArrayInputStream(
                                         EOS_PROP_VALUE_CHANGED
                                     )
                                 );
 
-        assertTrue(parser.hasEvents());
+        then(parser.hasEvents()).isTrue();
     }
 
-    public void testHasNotEvents() throws Exception {
+    @Test
+    public void parser_without_events() throws Exception {
         EosEventParser parser = new EosEventParser(
                                     new ByteArrayInputStream(
                                         new byte[0]
                                     )
                                 );
 
-        assertFalse(parser.hasEvents());
+        then(parser.hasEvents()).isFalse();
     }
 
-    public void testParseEventPropValueChanged() throws Exception {
+    @Test
+    public void event_EosEventPropValueChanged() throws Exception {
         EosEventParser parser = new EosEventParser(
                                     new ByteArrayInputStream(
                                         EOS_PROP_VALUE_CHANGED
@@ -145,14 +140,15 @@ public class EosEventParserTest extends TestCase {
 
         EosEvent e = parser.getNextEvent();
 
-        assertEquals(EosEventConstants.EosEventPropValueChanged, e.getCode());
-        assertEquals(2, e.getParamCount());
-        assertEquals(EosEventConstants.EosPropShutterSpeed, e.getIntParam(1));
-        assertEquals(0x006D, e.getIntParam(2));
+        then(e.getCode()).isEqualTo(EosEventConstants.EosEventPropValueChanged);
+        then(e.getParamCount()).isEqualTo(2);
+        then(e.getIntParam(1)).isEqualTo(EosEventConstants.EosPropShutterSpeed);
+        then(e.getIntParam(2)).isEqualTo(0x006D);
 
     }
 
-    public void testUnsupportedEvent() throws Exception {
+    @Test
+    public void unsupported_event() throws Exception {
         EosEventParser parser = new EosEventParser(
                                     new ByteArrayInputStream(
                                         UNSUPPORTED_EVENT
@@ -169,7 +165,8 @@ public class EosEventParserTest extends TestCase {
         }
     }
 
-    public void testSupportedAfterUnsupportedEvent() throws Exception {
+    @Test
+    public void supported_after_unsupported() throws Exception {
         EosEventParser parser = new EosEventParser(
                                     new ByteArrayInputStream(
                                         UNSUP_SUP_EVENT
@@ -187,10 +184,11 @@ public class EosEventParserTest extends TestCase {
 
         EosEvent e = parser.getNextEvent();
 
-        assertEquals(EosEventConstants.EosEventPropValueChanged, e.getCode());
+        then(e.getCode()).isEqualTo(EosEventConstants.EosEventPropValueChanged);
     }
 
-    public void testZeroParametersEvents() throws Exception {
+    @Test
+    public void zero_parameters_event() throws Exception {
         EosEventParser parser = new EosEventParser(
                                     new ByteArrayInputStream(
                                         SHUTDOWN_TIMER_UPDATED
@@ -199,11 +197,12 @@ public class EosEventParserTest extends TestCase {
 
         EosEvent e = parser.getNextEvent();
 
-        assertEquals(EosEventConstants.EosEventShutdownTimerUpdated, e.getCode());
-        assertEquals(0, e.getParamCount());
+        then(e.getCode()).isEqualTo(EosEventConstants.EosEventShutdownTimerUpdated);
+        then(e.getParamCount()).isZero();
     }
 
-    public void testCameraStatusChanged() throws Exception {
+    @Test
+    public void event_EosEventCameraStatusChanged() throws Exception {
         final byte[] EOS_CAMERA_STATUS_CHANGED = {
           (byte)0x0C, (byte)0x00, (byte)0x00, (byte)0x00,
           (byte)0x8B, (byte)0xC1, (byte)0x00, (byte)0x00,
@@ -217,12 +216,13 @@ public class EosEventParserTest extends TestCase {
 
         EosEvent e = parser.getNextEvent();
 
-        assertEquals(EosEventConstants.EosEventCameraStatusChanged, e.getCode());
-        assertEquals(1, e.getParamCount());
-        assertEquals(0x01, e.getIntParam(1));
+        then(e.getCode()).isEqualTo(EosEventConstants.EosEventCameraStatusChanged);
+        then(e.getParamCount()).isEqualTo(1);
+        then(e.getIntParam(1)).isEqualTo(0x01);
     }
 
-    public void testParsePropValueChangedPictureStyleDefault()
+    @Test
+    public void prop_value_changed_picture_style_default()
     throws Exception {
         final byte[] BUF = {
           (byte)0x28, (byte)0x00, (byte)0x00, (byte)0x00,
@@ -258,14 +258,14 @@ public class EosEventParserTest extends TestCase {
 
         EosEvent e = parser.getNextEvent();
 
-        assertEquals(EosEventConstants.EosEventPropValueChanged, e.getCode());
-        assertEquals(6, e.getParamCount());
-        assertEquals(EosEventConstants.EosPropPictureStyleStandard, e.getIntParam(1));
-        assertFalse((Boolean)e.getParam(2));
-        assertEquals( 3, e.getIntParam(3));
-        assertEquals( 7, e.getIntParam(4));
-        assertEquals(-1, e.getIntParam(5));
-        assertEquals( 4, e.getIntParam(6));
+        then(e.getCode()).isEqualTo(EosEventConstants.EosEventPropValueChanged);
+        then(e.getParamCount()).isEqualTo(6);
+        then(e.getIntParam(1)).isEqualTo(EosEventConstants.EosPropPictureStyleStandard);
+        then((Boolean)e.getParam(2)).isFalse();
+        then(e.getIntParam(3)).isEqualTo(3);
+        then(e.getIntParam(4)).isEqualTo(7);
+        then(e.getIntParam(5)).isEqualTo(-1);
+        then(e.getIntParam(6)).isEqualTo(4);
 
         //
         // Portrait
@@ -277,14 +277,14 @@ public class EosEventParserTest extends TestCase {
 
         e = parser.getNextEvent();
 
-        assertEquals(EosEventConstants.EosEventPropValueChanged, e.getCode());
-        assertEquals(6, e.getParamCount());
-        assertEquals(EosEventConstants.EosPropPictureStylePortrait, e.getIntParam(1));
-        assertFalse((Boolean)e.getParam(2));
-        assertEquals(3, e.getIntParam(3));
-        assertEquals(7, e.getIntParam(4));
-        assertEquals(-1, e.getIntParam(5));
-        assertEquals(4, e.getIntParam(6));
+        then(e.getCode()).isEqualTo(EosEventConstants.EosEventPropValueChanged);
+        then(e.getParamCount()).isEqualTo(6);
+        then(e.getIntParam(1)).isEqualTo(EosEventConstants.EosPropPictureStylePortrait);
+        then((Boolean)e.getParam(2)).isFalse();
+        then(e.getIntParam(3)).isEqualTo(3);
+        then(e.getIntParam(4)).isEqualTo(7);
+        then(e.getIntParam(5)).isEqualTo(-1);
+        then(e.getIntParam(6)).isEqualTo(4);
 
         //
         // B/N
@@ -298,17 +298,19 @@ public class EosEventParserTest extends TestCase {
 
         e = parser.getNextEvent();
 
-        assertEquals(EosEventConstants.EosEventPropValueChanged, e.getCode());
-        assertEquals(6, e.getParamCount());
-        assertEquals(EosEventConstants.EosPropPictureStyleMonochrome, e.getIntParam(1));
-        assertTrue((Boolean)e.getParam(2));
-        assertEquals(3, e.getIntParam(3));
-        assertEquals(7, e.getIntParam(4));
-        assertEquals(3, e.getIntParam(5));
-        assertEquals(1, e.getIntParam(6));
+        then(e.getCode()).isEqualTo(EosEventConstants.EosEventPropValueChanged);
+        then(e.getParamCount()).isEqualTo(6);
+        then(e.getIntParam(1)).isEqualTo(EosEventConstants.EosPropPictureStyleMonochrome);
+        then((Boolean)e.getParam(2)).isTrue();
+        then(e.getIntParam(3)).isEqualTo(3);
+        then(e.getIntParam(4)).isEqualTo(7);
+        then(e.getIntParam(5)).isEqualTo(3);
+        then(e.getIntParam(6)).isEqualTo(1);
+
     }
 
-    public void testParsePropValueChangedPictureStyleUser()
+    @Test
+    public void prop_value_changed_picture_style_default_user()
     throws Exception {
         final byte[] BUF1 = {
           (byte)0x2C, (byte)0x00, (byte)0x00, (byte)0x00,
@@ -331,7 +333,7 @@ public class EosEventParserTest extends TestCase {
           // toning effect (0:None, 1:Sepia, 2:Blue, 3:Purple, 4:Green)
           (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00
         };
-        
+
         final byte[] BUF2 = {
           (byte)0x2C, (byte)0x00, (byte)0x00, (byte)0x00,
           (byte)0x89, (byte)0xC1, (byte)0x00, (byte)0x00,
@@ -367,14 +369,14 @@ public class EosEventParserTest extends TestCase {
 
         EosEvent e = parser.getNextEvent();
 
-        assertEquals(EosEventConstants.EosEventPropValueChanged, e.getCode());
-        assertEquals(6, e.getParamCount());
-        assertEquals(EosEventConstants.EosPropPictureStyleUserSet1, e.getIntParam(1));
-        assertFalse((Boolean)e.getParam(2));
-        assertEquals( 3, e.getIntParam(3));
-        assertEquals( 7, e.getIntParam(4));
-        assertEquals(-1, e.getIntParam(5));
-        assertEquals( 4, e.getIntParam(6));
+        then(e.getCode()).isEqualTo(EosEventConstants.EosEventPropValueChanged);
+        then(e.getParamCount()).isEqualTo(6);
+        then(e.getIntParam(1)).isEqualTo(EosEventConstants.EosPropPictureStyleUserSet1);
+        then((Boolean)e.getParam(2)).isFalse();
+        then(e.getIntParam(3)).isEqualTo(3);
+        then(e.getIntParam(4)).isEqualTo(7);
+        then(e.getIntParam(5)).isEqualTo(-1);
+        then(e.getIntParam(6)).isEqualTo(4);
 
         //
         // UserSet2 - Monochrome
@@ -385,26 +387,27 @@ public class EosEventParserTest extends TestCase {
 
         e = parser.getNextEvent();
 
-        assertEquals(EosEventConstants.EosEventPropValueChanged, e.getCode());
-        assertEquals(6, e.getParamCount());
-        assertEquals(EosEventConstants.EosPropPictureStyleUserSet2, e.getIntParam(1));
-        assertTrue((Boolean)e.getParam(2));
-        assertEquals(0, e.getIntParam(3));
-        assertEquals(0, e.getIntParam(4));
-        assertEquals(3, e.getIntParam(5));
-        assertEquals(1, e.getIntParam(6));
+        then(e.getCode()).isEqualTo(EosEventConstants.EosEventPropValueChanged);
+        then(e.getParamCount()).isEqualTo(6);
+        then(e.getIntParam(1)).isEqualTo(EosEventConstants.EosPropPictureStyleUserSet2);
+        then((Boolean)e.getParam(2)).isTrue();
+        then(e.getIntParam(3)).isEqualTo(0);
+        then(e.getIntParam(4)).isEqualTo(0);
+        then(e.getIntParam(5)).isEqualTo(3);
+        then(e.getIntParam(6)).isEqualTo(1);
     }
 
-    public void testEosEventObjectAddedEx() throws Exception {
+    @Test
+    public void event_EosEventObjectAddedEx() throws Exception {
         final byte[] BUF = {
           (byte)0x3C, (byte)0x00, (byte)0x00, (byte)0x00,
           (byte)0x81, (byte)0xC1, (byte)0x00, (byte)0x00,
           // object ID
           (byte)0xB1, (byte)0x7B, (byte)0x90, (byte)0x91,
           // storage ID
-          (byte)0x01, (byte)0x00, (byte)0x02, (byte)0x00,          
+          (byte)0x01, (byte)0x00, (byte)0x02, (byte)0x00,
           // format
-          (byte)0x03, (byte)0xB1, 
+          (byte)0x03, (byte)0xB1,
           // unknown
           (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
           (byte)0x00, (byte)0x00, (byte)0x20, (byte)0x00,
@@ -430,13 +433,13 @@ public class EosEventParserTest extends TestCase {
 
         EosEvent e = parser.getNextEvent();
 
-        assertEquals(EosEventConstants.EosEventObjectAddedEx, e.getCode());
-        assertEquals(0x91907BB1,     e.getIntParam(1)   ); // object ID
-        assertEquals(0x020001,       e.getIntParam(2)   ); // storage ID
-        assertEquals(0x91900000,     e.getIntParam(3)   ); // parent ID
-        assertEquals(0xB103,         e.getIntParam(4)   ); // format
-        assertEquals(0x00880BE5,     e.getIntParam(5)   ); // size
-        assertEquals("IMG_1979.CR2", e.getStringParam(6)); // fiel name
+        then(e.getCode()).isEqualTo(EosEventConstants.EosEventObjectAddedEx);
+        then(e.getIntParam(1)   ).isEqualTo(0x91907BB1    ); // object ID
+        then(e.getIntParam(2)   ).isEqualTo(0x020001      ); // storage ID
+        then(e.getIntParam(3)   ).isEqualTo(0x91900000    ); // parent ID
+        then(e.getIntParam(4)   ).isEqualTo(0xB103        ); // format
+        then(e.getIntParam(5)   ).isEqualTo(0x00880BE5    ); // size
+        then(e.getStringParam(6)).isEqualTo("IMG_1979.CR2"); // fiel name
     }
 
 }
