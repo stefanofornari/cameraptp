@@ -87,6 +87,41 @@ public class BugFreePacketInputStream {
     }
 
     @Test
+    public void read_little_endian_int_ok() throws Exception {
+        final ByteArrayInputStream IS = new ByteArrayInputStream(
+            new byte[] {0, 0, 0, 0, 0x0A, 0x0B, 0x0C, 0x0D}
+        );
+
+        PacketInputStream is = new PacketInputStream(IS);
+
+        then(is.readLEInt()).isEqualTo(0);
+        then(is.readLEInt()).isEqualTo(0x0D0C0B0A);
+    }
+
+    @Test
+    public void read_little_endian_ko() throws Exception {
+        final ByteArrayInputStream IS = new ByteArrayInputStream(
+            new byte[] {0, 0, 0}
+        );
+
+        PacketInputStream is = new PacketInputStream(IS);
+
+        try {
+            is.readLEInt();
+            fail("missing io error");
+        } catch (IOException x) {
+            then(x).hasMessage("not enough bytes (1 missing)");
+        }
+
+        try {
+            is.readLEInt();
+            fail("missing io error");
+        } catch (IOException x) {
+            then(x).hasMessage("not enough bytes (4 missing)");
+        }
+    }
+
+    @Test
     public void read_init_command_acknowledge() throws Exception {
         final ByteArrayInputStream IS = new ByteArrayInputStream(
             new byte[] {
