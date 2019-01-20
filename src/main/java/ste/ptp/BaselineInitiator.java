@@ -215,6 +215,9 @@ public class BaselineInitiator extends NameFactory {
         Response response;
 
         synchronized (session) {
+            if (session.isActive()) {
+                throw new PTPException("a session is already open; call closeSession() before opening a new one");
+            }
             command = new Command(Command.OpenSession, session,
                     session.getNextSessionID());
             response = transactUnsync(command, null);

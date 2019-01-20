@@ -1,11 +1,11 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.ste</groupId>
+    <groupId>com.github.stefanofornari</groupId>
     <artifactId>cameraptp</artifactId>
     <name>Camera PTP</name>
     <packaging>jar</packaging>
-    <version>1.2-SNAPSHOT</version>
+    <version>2.0-SNAPSHOT</version>
     <url>http://maven.apache.org</url>
 
 
@@ -14,6 +14,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.0</version>
                 <configuration>
                     <source>10</source>
                     <target>10</target>
