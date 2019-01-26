@@ -27,18 +27,18 @@ public class BugFreeErrorPayload {
 
     @Test
     public void error_payload_type() {
-        then(new InitErrorPayload(0x00112233).getType()).isEqualTo(Constants.PacketType.INIT_COMMAND_FAIL.type());
+        then(new InitError(0x00112233).getType()).isEqualTo(Constants.PacketType.INIT_COMMAND_FAIL.type());
     }
 
     @Test
     public void error_payload_size() {
-        then(new InitErrorPayload(0x00112233).getSize()).isEqualTo(4);
+        then(new InitError(0x00112233).getSize()).isEqualTo(4);
     }
 
     @Test
     public void error_payload_with_code() {
-        then(new InitErrorPayload(0x00112233).error).isEqualTo(0x00112233);
-        then(new InitErrorPayload(0x0a0b0c0d).error).isEqualTo(0x0a0b0c0d);
+        then(new InitError(0x00112233).error).isEqualTo(0x00112233);
+        then(new InitError(0x0a0b0c0d).error).isEqualTo(0x0a0b0c0d);
     }
 
 }

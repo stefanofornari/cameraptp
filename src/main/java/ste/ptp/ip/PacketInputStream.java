@@ -184,4 +184,12 @@ public class PacketInputStream extends InputStream {
             readVersion()
         );
     }
+
+    public InitError readInitError() throws IOException {
+        return new InitError(readBEInt());
+    }
+
+    public InitEventRequest readInitEventRequest() throws IOException {
+        return new InitEventRequest(readBEInt());
+    }
 }

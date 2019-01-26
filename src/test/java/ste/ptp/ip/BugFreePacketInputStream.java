@@ -221,6 +221,50 @@ public class BugFreePacketInputStream {
     }
 
     @Test
+    public void read_init_event_command_request() throws Exception {
+        final ByteArrayInputStream IS = new ByteArrayInputStream(
+            new byte[] {
+                (byte)0x01, (byte)0x02, (byte)0x03, (byte)0x04, // --- session id 1
+                (byte)0xaa, (byte)0xbb, (byte)0xcc, (byte)0xdd, // --- session id 2
+                (byte)0x00, (byte)0x11                          // --- not enough data
+            }
+        );
+
+        PacketInputStream is = new PacketInputStream(IS);
+        then(is.readInitEventRequest().sessionId).isEqualTo(0x01020304);
+        then(is.readInitEventRequest().sessionId).isEqualTo(0xaabbccdd);
+
+        try {
+            is.readInitEventRequest();
+            fail("no io error");
+        } catch (IOException x) {
+            then(x).hasMessage("not enough bytes (2 missing)");
+        }
+    }
+
+    @Test
+    public void read_init_error() throws Exception {
+        final ByteArrayInputStream IS = new ByteArrayInputStream(
+            new byte[] {
+                (byte)0x01, (byte)0x02, (byte)0x03, (byte)0x04, // --- error code 1
+                (byte)0xaa, (byte)0xbb, (byte)0xcc, (byte)0xdd, // --- error code 2
+                (byte)0x00                                      // --- not enough data
+            }
+        );
+
+        PacketInputStream is = new PacketInputStream(IS);
+        then(is.readInitError().error).isEqualTo(0x01020304);
+        then(is.readInitError().error).isEqualTo(0xaabbccdd);
+
+        try {
+            is.readInitError();
+            fail("no io error");
+        } catch (IOException x) {
+             then(x).hasMessage("not enough bytes (3 missing)");
+        }
+    }
+
+    @Test
     public void read_bytes_with_enough_data() throws Exception {
         final ByteArrayInputStream IS = new ByteArrayInputStream(
             new byte[] {0x0A, 0x0B, 0x0C, 0x0D}

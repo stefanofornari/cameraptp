@@ -53,10 +53,7 @@ public class PacketOutputStream extends OutputStream {
     public int write(InitCommandAcknowledge payload) throws IOException {
         byte[] hostnameBuf = payload.hostname.getBytes("UTF_16LE");
 
-        destination.write((payload.sessionId & 0xff000000) >> 24);
-        destination.write((payload.sessionId & 0x00ff0000) >> 16);
-        destination.write((payload.sessionId & 0x0000ff00) >> 8 );
-        destination.write((payload.sessionId & 0x000000ff)      );
+        writeBEInt(payload.sessionId);
 
         destination.write(payload.guid);
         destination.write(hostnameBuf); destination.write(0); destination.write(0);
@@ -69,6 +66,10 @@ public class PacketOutputStream extends OutputStream {
         destination.write(major & 0x00ff); destination.write((major & 0xff00) >> 8);
 
         return 20 + hostnameBuf.length + 2 + 4;
+    }
+
+    public int write(InitEventRequest payload) throws IOException {
+        return writeBEInt(payload.sessionId);
     }
 
     public int write(PTPIPContainer container) {
@@ -89,9 +90,20 @@ public class PacketOutputStream extends OutputStream {
             return write((InitCommandAcknowledge)payload);
         } else if (payload instanceof InitCommandRequest) {
             return write((InitCommandRequest)payload);
+        } else if (payload instanceof InitEventRequest) {
+            return write((InitEventRequest)payload);
         }
 
-        return payload.getSize();
+        throw new IOException("unsupported payload " + payload.getClass());
+    }
+
+    public int writeBEInt(int i) throws IOException {
+        destination.write((i & 0xff000000) >> 24);
+        destination.write((i & 0x00ff0000) >> 16);
+        destination.write((i & 0x0000ff00) >> 8 );
+        destination.write((i & 0x000000ff)      );
+
+        return 4;
     }
 
     @Override

@@ -134,6 +134,36 @@ public class BugFreePacketOutputStream {
     }
 
     @Test
+    public void write_init_event_request() throws Exception {
+        final ByteArrayOutputStream OS = new ByteArrayOutputStream();
+        final InitEventRequest R = new InitEventRequest(0x00010203);
+
+        PacketOutputStream out = new PacketOutputStream(OS);
+        out.write(R);
+
+        PacketInputStream is = new PacketInputStream(
+            new ByteArrayInputStream(OS.toByteArray())
+        );
+
+        InitEventRequest req = is.readInitEventRequest();
+
+        then(req.sessionId).isEqualTo(R.sessionId);
+    }
+
+    @Test
+    public void write_init_event_request_io_error() throws Exception {
+        final InitEventRequest R = new InitEventRequest(0x00010203);
+
+        PacketOutputStream out = new PacketOutputStream(new BrokenOutputStream());
+        try {
+            out.write(R);
+            fail("no io error thrown");
+        } catch (IOException x) {
+            then(x).hasMessage("simulate an error");
+        }
+    }
+
+    @Test
     public void write_generic_packet() throws Exception {
         final ByteArrayOutputStream OS = new ByteArrayOutputStream();
         final InitCommandRequest R = new InitCommandRequest(GUID1, "mypc1", "1.0");
