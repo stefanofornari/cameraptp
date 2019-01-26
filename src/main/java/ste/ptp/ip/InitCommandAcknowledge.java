@@ -1,5 +1,3 @@
-package ste.ptp.ip;
-
 /* Copyright 2018 by Stefano Fornari
 //
 // This program is free software; you can redistribute it and/or modify
@@ -17,6 +15,7 @@ package ste.ptp.ip;
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+package ste.ptp.ip;
 
 import static ste.ptp.ip.Constants.PacketType.INIT_COMMAND_ACK;
 

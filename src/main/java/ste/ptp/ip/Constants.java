@@ -22,7 +22,9 @@ package ste.ptp.ip;
 public interface Constants {
     public enum PacketType {
         INIT_COMMAND_REQUEST(0x00000001),
-        INIT_COMMAND_ACK(0x00000002);
+        INIT_COMMAND_ACK(0x00000002),
+        INIT_EVENT_ACK(0x00000003),
+        INIT_COMMAND_FAIL(0x00000005);
 
         private int type;
 

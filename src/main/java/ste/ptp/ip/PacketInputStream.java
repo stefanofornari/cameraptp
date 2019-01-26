@@ -41,37 +41,80 @@ public class PacketInputStream extends InputStream {
 
     /**
      * Reads 4 bytes and tuns them into a int following big endian convention.
-     * if no t enough bytes are available an IOExceptionException is throown.
+     * if not enough bytes are available an IOExceptionException is thrown.
      *
-     * @return the next byte of data
+     * @return the int (big endian)
      *
      * @throws IOException if not enough bytes are available or in case of
      *                     errors in the source stream.
      */
     public int readBEInt() throws IOException {
         int next = source.read();
+        System.out.print("next: " + next);
         if (next < 0) {
             throw new IOException("not enough bytes (4 missing)");
         }
         int ret = next << 24;
 
         next = source.read();
+        System.out.print("next: " + next);
         if (next < 0) {
             throw new IOException("not enough bytes (3 missing)");
         }
         ret |= (next << 16);
 
         next = source.read();
+        System.out.print("next: " + next);
         if (next < 0) {
             throw new IOException("not enough bytes (2 missing)");
         }
         ret |= (next << 8);
 
         next = source.read();
+        System.out.print("next: " + next);
         if (next < 0) {
             throw new IOException("not enough bytes (1 missing)");
         }
         ret |= next;
+
+        System.out.println(String.format("readBEInt: %x", ret));
+
+        return ret;
+    }
+
+    /**
+     * Reads 4 bytes and tuns them into a int following little endian convention.
+     * if not enough bytes are available an IOExceptionException is thrown.
+     *
+     * @return the next int (little endian)
+     *
+     * @throws IOException if not enough bytes are available or in case of
+     *                     errors in the source stream.
+     */
+    public int readLEInt() throws IOException {
+        int next = source.read();
+        if (next < 0) {
+            throw new IOException("not enough bytes (4 missing)");
+        }
+        int ret = next;
+
+        next = source.read();
+        if (next < 0) {
+            throw new IOException("not enough bytes (3 missing)");
+        }
+        ret |= (next << 8);
+
+        next = source.read();
+        if (next < 0) {
+            throw new IOException("not enough bytes (2 missing)");
+        }
+        ret |= (next << 16);
+
+        next = source.read();
+        if (next < 0) {
+            throw new IOException("not enough bytes (1 missing)");
+        }
+        ret |= (next << 24);
 
         return ret;
     }
@@ -128,6 +171,14 @@ public class PacketInputStream extends InputStream {
     public InitCommandAcknowledge readInitCommandAcknowledge() throws IOException {
         return new InitCommandAcknowledge(
             readBEInt(),
+            readBytes(16),
+            readString(),
+            readVersion()
+        );
+    }
+
+    public InitCommandRequest readInitCommandRequest() throws IOException {
+        return new InitCommandRequest(
             readBytes(16),
             readString(),
             readVersion()

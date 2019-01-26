@@ -1,4 +1,4 @@
-/* Copyright 2019 by Stefano Fornari
+/* Copyright 2018 by Stefano Fornari
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,10 +16,29 @@
 */
 package ste.ptp.ip;
 
+import static org.assertj.core.api.BDDAssertions.then;
+import org.junit.Test;
+
 /**
- * TODO: use Constants.PacketType for type
+ *
+ * @author ste
  */
-public abstract class Payload {
-    public int getType() { return 0; }
-    public int getSize() { return 0; }
+public class BugFreeErrorPayload {
+
+    @Test
+    public void error_payload_type() {
+        then(new InitErrorPayload(0x00112233).getType()).isEqualTo(Constants.PacketType.INIT_COMMAND_FAIL.type());
+    }
+
+    @Test
+    public void error_payload_size() {
+        then(new InitErrorPayload(0x00112233).getSize()).isEqualTo(4);
+    }
+
+    @Test
+    public void error_payload_with_code() {
+        then(new InitErrorPayload(0x00112233).error).isEqualTo(0x00112233);
+        then(new InitErrorPayload(0x0a0b0c0d).error).isEqualTo(0x0a0b0c0d);
+    }
+
 }

@@ -122,6 +122,55 @@ public class BugFreePacketInputStream {
     }
 
     @Test
+    public void read_init_command_request() throws Exception {
+        final ByteArrayInputStream IS = new ByteArrayInputStream(
+            new byte[] {
+                (byte)0xab, (byte)0xad, (byte)0xa5, (byte)0xad, // ---
+                (byte)0xa8, (byte)0xaa, (byte)0xa9, (byte)0xac, // 16 bytes GUID
+                (byte)0xaf, (byte)0xa4, (byte)0xa0, (byte)0xab, //
+                (byte)0xa6, (byte)0xa9, (byte)0xa5, (byte)0xae, // ---
+                (byte)0x53, (byte)0x00, (byte)0x4d, (byte)0x00, // ---
+                (byte)0x2d, (byte)0x00, (byte)0x4a, (byte)0x00, //
+                (byte)0x33, (byte)0x00, (byte)0x32, (byte)0x00, // Hostname (SM-J320FN)
+                (byte)0x30, (byte)0x00, (byte)0x46, (byte)0x00, //
+                (byte)0x4e, (byte)0x00, (byte)0x00, (byte)0x00, // ---
+                (byte)0x00, (byte)0x00, (byte)0x01, (byte)0x00,  // version 1.0
+                (byte)0xbb, (byte)0xbd, (byte)0xb5, (byte)0xbd, // ---
+                (byte)0xba, (byte)0xba, (byte)0xb9, (byte)0xbc, // 16 bytes GUID
+                (byte)0xbf, (byte)0xb4, (byte)0xb0, (byte)0xbb, //
+                (byte)0xb6, (byte)0xb9, (byte)0xb5, (byte)0xbe, // ---
+                (byte)0x53, (byte)0x00, (byte)0x4d, (byte)0x00, // ---
+                (byte)0x2d, (byte)0x00, (byte)0x4b, (byte)0x00, //
+                (byte)0x33, (byte)0x00, (byte)0x32, (byte)0x00, // Hostname (SM-J320FN)
+                (byte)0x30, (byte)0x00, (byte)0x45, (byte)0x00, //
+                (byte)0x4f, (byte)0x00, (byte)0x00, (byte)0x00, // ---
+                (byte)0x01, (byte)0x00, (byte)0x01, (byte)0x00  // version 1.0
+            }
+        );
+
+        PacketInputStream is = new PacketInputStream(IS);
+        InitCommandRequest req = is.readInitCommandRequest();
+        then(req.guid).isEqualTo(new byte[] {
+            (byte)0xab, (byte)0xad, (byte)0xa5, (byte)0xad,
+            (byte)0xa8, (byte)0xaa, (byte)0xa9, (byte)0xac,
+            (byte)0xaf, (byte)0xa4, (byte)0xa0, (byte)0xab,
+            (byte)0xa6, (byte)0xa9, (byte)0xa5, (byte)0xae
+        });
+        then(req.hostname).isEqualTo("SM-J320FN");
+        then(req.version).isEqualTo("1.0");
+
+        req = is.readInitCommandRequest();
+        then(req.guid).isEqualTo(new byte[] {
+            (byte)0xbb, (byte)0xbd, (byte)0xb5, (byte)0xbd, // ---
+            (byte)0xba, (byte)0xba, (byte)0xb9, (byte)0xbc, // 16 bytes GUID
+            (byte)0xbf, (byte)0xb4, (byte)0xb0, (byte)0xbb, //
+            (byte)0xb6, (byte)0xb9, (byte)0xb5, (byte)0xbe
+        });
+        then(req.hostname).isEqualTo("SM-K320EO");
+        then(req.version).isEqualTo("1.1");
+    }
+
+    @Test
     public void read_init_command_acknowledge() throws Exception {
         final ByteArrayInputStream IS = new ByteArrayInputStream(
             new byte[] {

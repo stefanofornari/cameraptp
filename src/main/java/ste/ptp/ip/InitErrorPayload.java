@@ -14,12 +14,32 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+
 package ste.ptp.ip;
 
 /**
- * TODO: use Constants.PacketType for type
+ *
+ * @author ste
  */
-public abstract class Payload {
-    public int getType() { return 0; }
-    public int getSize() { return 0; }
+public class InitErrorPayload extends Payload {
+
+    public int error;
+
+    /**
+     * The meaning of code is not clear yet and may depend on the camera
+     *
+     * @param code the error code
+     *
+     */
+    public InitErrorPayload(int code) {
+        this.error = code;
+    }
+
+    public int getType() {
+        return Constants.PacketType.INIT_COMMAND_FAIL.type();
+    }
+
+    public int getSize() {
+        return 4;
+    }
 }
