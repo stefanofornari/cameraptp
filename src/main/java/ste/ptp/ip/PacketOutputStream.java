@@ -72,6 +72,10 @@ public class PacketOutputStream extends OutputStream {
         return writeBEInt(payload.sessionId);
     }
 
+    public int write(InitError payload) throws IOException {
+        return writeBEInt(payload.error);
+    }
+
     public int write(PTPIPContainer container) {
         try {
             destination.write(littleEndian(container.getSize()));
@@ -92,6 +96,10 @@ public class PacketOutputStream extends OutputStream {
             return write((InitCommandRequest)payload);
         } else if (payload instanceof InitEventRequest) {
             return write((InitEventRequest)payload);
+        } else if (payload instanceof InitEventAcknowledge) {
+            return 0;
+        } else if (payload instanceof InitError) {
+            return write((InitError)payload);
         }
 
         throw new IOException("unsupported payload " + payload.getClass());

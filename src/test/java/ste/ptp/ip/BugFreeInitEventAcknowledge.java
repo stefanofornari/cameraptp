@@ -1,4 +1,4 @@
-/* Copyright 2019 by Stefano Fornari
+/* Copyright 2018 by Stefano Fornari
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,25 +16,29 @@
 */
 package ste.ptp.ip;
 
+import static org.assertj.core.api.BDDAssertions.then;
+import org.junit.Test;
+
 /**
  *
+ * @author ste
  */
-public interface Constants {
-    public enum PacketType {
-        INIT_COMMAND_REQUEST(0x00000001),
-        INIT_COMMAND_ACK(0x00000002),
-        INIT_EVENT_REQUEST(0x00000003),
-        INIT_EVENT_ACK(0x00000004),
-        INIT_COMMAND_FAIL(0x00000005);
+public class BugFreeInitEventAcknowledge {
 
-        private int type;
-
-        PacketType(int type) {
-            this.type = type;
-        }
-
-        public int type() {
-            return type;
-        }
+    @Test
+    public void init_event_ack_payload_type() {
+        then(new InitEventAcknowledge().getType()).isEqualTo(Constants.PacketType.INIT_EVENT_ACK.type());
     }
+
+    @Test
+    public void init_event_ack_payload_size() {
+        then(new InitEventAcknowledge().getSize()).isZero();
+    }
+
+    @Test
+    public void error_payload_with_code() {
+        then(new InitError(0x00112233).error).isEqualTo(0x00112233);
+        then(new InitError(0x0a0b0c0d).error).isEqualTo(0x0a0b0c0d);
+    }
+
 }

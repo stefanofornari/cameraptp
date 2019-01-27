@@ -185,11 +185,15 @@ public class PacketInputStream extends InputStream {
         );
     }
 
-    public InitError readInitError() throws IOException {
-        return new InitError(readBEInt());
-    }
-
     public InitEventRequest readInitEventRequest() throws IOException {
         return new InitEventRequest(readBEInt());
+    }
+
+    public InitEventAcknowledge readInitEventAcknowledge() throws IOException {
+        return new InitEventAcknowledge();
+    }
+
+    public InitError readInitError() throws IOException {
+        return new InitError(readBEInt());
     }
 }

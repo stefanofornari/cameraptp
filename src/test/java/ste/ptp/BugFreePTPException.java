@@ -32,27 +32,28 @@ public class BugFreePTPException {
 
         PTPException e = new PTPException();
 
-        then(e.getCause()).isNull();
-        then(e.getMessage()).isSameAs("");
+        then(e).hasNoCause();
+        then(e).hasMessage("0x00002000 ");
         then(e.getErrorCode()).isEqualTo(Response.Undefined);
 
         e = new PTPException(MSG);
         then(e).hasNoCause();
-        then(e.getMessage()).isSameAs(MSG);
+        then(e).hasMessage("0x00002000 " + MSG);
         then(e.getErrorCode()).isEqualTo(Response.Undefined);
 
         e = new PTPException(MSG, T);
         then(e).hasCause(T);
-        then(e.getMessage()).isSameAs(MSG);
+        then(e).hasMessage("0x00002000 " + MSG);
         then(e.getErrorCode()).isEqualTo(Response.Undefined);
 
         e = new PTPException(CODE);
         then(e).hasNoCause();
+        then(e).hasMessage("0x0000200f ");
         then(e.getErrorCode()).isEqualTo(CODE);
 
         e = new PTPException(MSG, CODE);
         then(e).hasNoCause();
-        then(e.getMessage()).isSameAs(MSG);
+        then(e).hasMessage("0x0000200f " + MSG);
         then(e.getErrorCode()).isEqualTo(CODE);
     }
 

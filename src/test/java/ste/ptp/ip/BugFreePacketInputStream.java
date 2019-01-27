@@ -243,6 +243,23 @@ public class BugFreePacketInputStream {
     }
 
     @Test
+    public void read_init_evet_acknowledge() throws Exception {
+        //
+        // the packet init_event_acknowledge is empty...
+        //
+        final ByteArrayInputStream IS = new ByteArrayInputStream(
+            new byte[] { 0x01, 0x02, 0x03 }
+        );
+
+        PacketInputStream is = new PacketInputStream(IS);
+        is.readInitEventAcknowledge();  // no errors is enough
+
+        then(IS.read()).isEqualTo(0x01);
+        then(IS.read()).isEqualTo(0x02);
+        then(IS.read()).isEqualTo(0x03);
+    }
+
+    @Test
     public void read_init_error() throws Exception {
         final ByteArrayInputStream IS = new ByteArrayInputStream(
             new byte[] {

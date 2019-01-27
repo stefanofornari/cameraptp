@@ -164,20 +164,27 @@ public class BugFreePacketOutputStream {
     }
 
     @Test
-    public void write_generic_packet() throws Exception {
+    public void write_generic_packets() throws Exception {
         final ByteArrayOutputStream OS = new ByteArrayOutputStream();
-        final InitCommandRequest R = new InitCommandRequest(GUID1, "mypc1", "1.0");
-        final InitCommandAcknowledge A = new InitCommandAcknowledge(0x00010203, GUID2, "mypc2", "1.1");
+        final InitCommandRequest CR = new InitCommandRequest(GUID1, "mypc1", "1.0");
+        final InitCommandAcknowledge CA = new InitCommandAcknowledge(0x00010203, GUID2, "mypc2", "1.1");
+        final InitEventAcknowledge EA = new InitEventAcknowledge();
+        final InitError E = new InitError(0x0a0b);
 
         PacketOutputStream out = new PacketOutputStream(OS);
-        out.write(new PTPIPContainer(R)); out.write(new PTPIPContainer(A));
+        out.write(CR);
+        out.write(CA);
+        out.write(EA);
+        out.write(E);
 
         PacketInputStream is = new PacketInputStream(
             new ByteArrayInputStream(OS.toByteArray())
         );
 
-        InitCommandRequest req = is.readInitCommandRequest();
-        InitCommandAcknowledge ack = is.readInitCommandAcknowledge();
+        then(is.readInitCommandRequest().guid).containsExactly(CR.guid);
+        then(is.readInitCommandAcknowledge().guid).containsExactly(GUID2);
+        is.readInitEventAcknowledge();
+        then(is.readInitError().error).isEqualTo(E.error);
     }
 
     // ------------------------------------------------------ BrokenOutputStream

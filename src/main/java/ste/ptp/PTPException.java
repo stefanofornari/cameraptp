@@ -48,4 +48,9 @@ public class PTPException extends Exception {
     public int getErrorCode() {
         return errorCode;
     }
+
+    @Override
+    public String getMessage() {
+        return String.format("%#010x %s", errorCode, super.getMessage());
+    }
 }
