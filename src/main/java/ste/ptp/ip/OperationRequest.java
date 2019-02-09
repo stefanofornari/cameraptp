@@ -1,4 +1,4 @@
-/* Copyright 2019 by Stefano Fornari
+/* Copyright 2018 by Stefano Fornari
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,27 +16,37 @@
 */
 package ste.ptp.ip;
 
+import static ste.ptp.ip.Constants.PacketType.OPERATION_REQUEST;
+
 /**
  *
+ *
  */
-public interface Constants {
-    public enum PacketType {
-        INIT_COMMAND_REQUEST(0x00000001),
-        INIT_COMMAND_ACK(0x00000002),
-        INIT_EVENT_REQUEST(0x00000003),
-        INIT_EVENT_ACK(0x00000004),
-        INIT_COMMAND_FAIL(0x00000005),
-        OPERATION_REQUEST(0x00000006);
+public class OperationRequest extends Payload {
 
+    public int code;
+    public int transaction;
+    public int dataPhaseInfo;
 
-        private int type;
+    public OperationRequest(int code) {
+        this(code, 0, 0);
+    }
 
-        PacketType(int type) {
-            this.type = type;
-        }
+    public OperationRequest(int code, int transaction) {
+        this(code, 0, transaction);
+    }
 
-        public int type() {
-            return type;
-        }
+    public OperationRequest(int code, int dataPhaseInfo, int transaction) {
+        this.code = code;
+        this.dataPhaseInfo = dataPhaseInfo;
+        this.transaction = transaction;
+    }
+
+    public int getType() {
+        return OPERATION_REQUEST.type();
+    }
+
+    public int getSize() {
+        return 14;
     }
 }

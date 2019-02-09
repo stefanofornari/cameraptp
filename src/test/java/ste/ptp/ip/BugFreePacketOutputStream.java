@@ -23,6 +23,7 @@ import java.io.OutputStream;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
+import ste.ptp.Command;
 
 /**
  *
@@ -55,6 +56,7 @@ public class BugFreePacketOutputStream {
         os.write('l');
         os.write('o');
 
+        os.flush();
         then(OS.toString()).isEqualTo("hello");
     }
 
@@ -74,7 +76,7 @@ public class BugFreePacketOutputStream {
         final InitCommandRequest R = new InitCommandRequest(GUID1, "mypc1", "1.0");
 
         PacketOutputStream out = new PacketOutputStream(OS);
-        out.write(R);
+        out.write(R); out.flush();
 
         PacketInputStream is = new PacketInputStream(
             new ByteArrayInputStream(OS.toByteArray())
@@ -93,7 +95,7 @@ public class BugFreePacketOutputStream {
 
         PacketOutputStream out = new PacketOutputStream(new BrokenOutputStream());
         try {
-            out.write(R);
+            out.write(R); out.flush();
             fail("no io error thrown");
         } catch (IOException x) {
             then(x).hasMessage("simulate an error");
@@ -106,7 +108,7 @@ public class BugFreePacketOutputStream {
         final InitCommandAcknowledge R = new InitCommandAcknowledge(0x00010203, GUID1, "mypc1", "1.0");
 
         PacketOutputStream out = new PacketOutputStream(OS);
-        out.write(R);
+        out.write(R); out.flush();
 
         PacketInputStream is = new PacketInputStream(
             new ByteArrayInputStream(OS.toByteArray())
@@ -126,7 +128,7 @@ public class BugFreePacketOutputStream {
 
         PacketOutputStream out = new PacketOutputStream(new BrokenOutputStream());
         try {
-            out.write(R);
+            out.write(R); out.flush();
             fail("no io error thrown");
         } catch (IOException x) {
             then(x).hasMessage("simulate an error");
@@ -139,7 +141,7 @@ public class BugFreePacketOutputStream {
         final InitEventRequest R = new InitEventRequest(0x00010203);
 
         PacketOutputStream out = new PacketOutputStream(OS);
-        out.write(R);
+        out.write(R); out.flush();
 
         PacketInputStream is = new PacketInputStream(
             new ByteArrayInputStream(OS.toByteArray())
@@ -156,7 +158,46 @@ public class BugFreePacketOutputStream {
 
         PacketOutputStream out = new PacketOutputStream(new BrokenOutputStream());
         try {
-            out.write(R);
+            out.write(R); out.flush();
+            fail("no io error thrown");
+        } catch (IOException x) {
+            then(x).hasMessage("simulate an error");
+        }
+    }
+
+    @Test
+    public void write_operation_request() throws Exception {
+        final ByteArrayOutputStream OS = new ByteArrayOutputStream();
+        final OperationRequest[] R = new OperationRequest[] {
+            new OperationRequest(Command.GetDeviceInfo),
+            new OperationRequest(Command.CopyObject, 0x00110011),
+            new OperationRequest(Command.GetObject, 0x00000002, 0x11001100),
+        };
+
+        PacketOutputStream out = new PacketOutputStream(OS);
+        for (OperationRequest r: R) {
+            out.write(r); out.flush();
+        }
+
+        PacketInputStream is = new PacketInputStream(
+            new ByteArrayInputStream(OS.toByteArray())
+        );
+
+        for (OperationRequest r: R) {
+            OperationRequest req = is.readOperationRequest();
+
+            then(req.code).isEqualTo(r.code);
+            then(req.transaction).isEqualTo(r.transaction);
+        }
+    }
+
+    @Test
+    public void write_operation_request_io_error() throws Exception {
+        final OperationRequest R = new OperationRequest(Command.EosBulbEnd);
+
+        PacketOutputStream out = new PacketOutputStream(new BrokenOutputStream());
+        try {
+            out.write(R); out.flush();
             fail("no io error thrown");
         } catch (IOException x) {
             then(x).hasMessage("simulate an error");
@@ -170,12 +211,15 @@ public class BugFreePacketOutputStream {
         final InitCommandAcknowledge CA = new InitCommandAcknowledge(0x00010203, GUID2, "mypc2", "1.1");
         final InitEventAcknowledge EA = new InitEventAcknowledge();
         final InitError E = new InitError(0x0a0b);
+        final OperationRequest OR = new OperationRequest(Command.GetDeviceInfo);
 
         PacketOutputStream out = new PacketOutputStream(OS);
         out.write(CR);
         out.write(CA);
         out.write(EA);
         out.write(E);
+        out.write(OR);
+        out.flush();
 
         PacketInputStream is = new PacketInputStream(
             new ByteArrayInputStream(OS.toByteArray())
@@ -185,6 +229,7 @@ public class BugFreePacketOutputStream {
         then(is.readInitCommandAcknowledge().guid).containsExactly(GUID2);
         is.readInitEventAcknowledge();
         then(is.readInitError().error).isEqualTo(E.error);
+        then(is.readOperationRequest().code).isEqualTo(Command.GetDeviceInfo);
     }
 
     // ------------------------------------------------------ BrokenOutputStream

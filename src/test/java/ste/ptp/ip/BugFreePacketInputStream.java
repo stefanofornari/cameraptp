@@ -190,7 +190,7 @@ public class BugFreePacketInputStream {
 
         PacketInputStream is = new PacketInputStream(IS);
         InitCommandAcknowledge ack = is.readInitCommandAcknowledge();
-        then(ack.sessionId).isEqualTo(16777216);
+        then(ack.sessionId).isEqualTo(1);
         then(ack.guid).isEqualTo(new byte[] {
             (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
             (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
@@ -221,7 +221,7 @@ public class BugFreePacketInputStream {
     }
 
     @Test
-    public void read_init_event_command_request() throws Exception {
+    public void read_init_event_request() throws Exception {
         final ByteArrayInputStream IS = new ByteArrayInputStream(
             new byte[] {
                 (byte)0x01, (byte)0x02, (byte)0x03, (byte)0x04, // --- session id 1
@@ -231,8 +231,8 @@ public class BugFreePacketInputStream {
         );
 
         PacketInputStream is = new PacketInputStream(IS);
-        then(is.readInitEventRequest().sessionId).isEqualTo(0x01020304);
-        then(is.readInitEventRequest().sessionId).isEqualTo(0xaabbccdd);
+        then(is.readInitEventRequest().sessionId).isEqualTo(0x04030201);
+        then(is.readInitEventRequest().sessionId).isEqualTo(0xddccbbaa);
 
         try {
             is.readInitEventRequest();
@@ -424,6 +424,45 @@ public class BugFreePacketInputStream {
             fail("mising io error");
         } catch (IOException x) {
             then(x).hasMessage("not enough bytes");
+        }
+    }
+
+    @Test
+    public void read_operation_request_ok() throws Exception {
+        final ByteArrayInputStream IS = new ByteArrayInputStream(
+            new byte[] {
+                //
+                // 1st
+                //
+                (byte)0x01, (byte)0x00, (byte)0x00, (byte)0x00, // --- data phase info
+                (byte)0x01, (byte)0x10,                         // --- operation code
+                (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, // --- transaction id
+                //
+                // 2nd
+                //
+                (byte)0x01, (byte)0x20, (byte)0x00, (byte)0x00, // --- data phase info
+                (byte)0x02, (byte)0x20,                         // --- operation code
+                (byte)0x01, (byte)0x00, (byte)0x02, (byte)0x00  // --- transaction id
+            }
+        );
+
+        PacketInputStream is = new PacketInputStream(IS);
+
+        OperationRequest or = is.readOperationRequest();
+        then(or.code).isEqualTo(0x1001);
+        then(or.dataPhaseInfo).isEqualTo(1);
+        then(or.transaction).isEqualTo(0);
+
+        or = is.readOperationRequest();
+        then(or.code).isEqualTo(0x2002);
+        then(or.dataPhaseInfo).isEqualTo(0x00002001);
+        then(or.transaction).isEqualTo(0x00020001);
+
+        try {
+            is.readOperationRequest();
+            fail("no io error");
+        } catch (IOException x) {
+            then(x).hasMessage("not enough bytes (4 missing)");
         }
     }
 }

@@ -23,7 +23,7 @@ import org.junit.Test;
  *
  * @author ste
  */
-public class BugFreeInitEventRequestPayload {
+public class BugFreeInitEventRequest {
 
     @Test
     public void init_event_request_payload_type() {

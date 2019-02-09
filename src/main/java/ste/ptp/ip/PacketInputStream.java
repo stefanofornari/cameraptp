@@ -50,43 +50,37 @@ public class PacketInputStream extends InputStream {
      */
     public int readBEInt() throws IOException {
         int next = source.read();
-        System.out.print("next: " + next);
         if (next < 0) {
             throw new IOException("not enough bytes (4 missing)");
         }
         int ret = next << 24;
 
         next = source.read();
-        System.out.print("next: " + next);
         if (next < 0) {
             throw new IOException("not enough bytes (3 missing)");
         }
         ret |= (next << 16);
 
         next = source.read();
-        System.out.print("next: " + next);
         if (next < 0) {
             throw new IOException("not enough bytes (2 missing)");
         }
         ret |= (next << 8);
 
         next = source.read();
-        System.out.print("next: " + next);
         if (next < 0) {
             throw new IOException("not enough bytes (1 missing)");
         }
         ret |= next;
 
-        System.out.println(String.format("readBEInt: %x", ret));
-
         return ret;
     }
 
     /**
-     * Reads 4 bytes and tuns them into a int following little endian convention.
+     * Reads 4 bytes into a little endian int.
      * if not enough bytes are available an IOExceptionException is thrown.
      *
-     * @return the next int (little endian)
+     * @return the next int (32 bits) (little endian)
      *
      * @throws IOException if not enough bytes are available or in case of
      *                     errors in the source stream.
@@ -115,6 +109,31 @@ public class PacketInputStream extends InputStream {
             throw new IOException("not enough bytes (1 missing)");
         }
         ret |= (next << 24);
+
+        return ret;
+    }
+
+    /**
+     * Reads 2 bytes into a little endian short.
+     * if not enough bytes are available an IOExceptionException is thrown.
+     *
+     * @return the next short (16 bits) in the stream (little endian)
+     *
+     * @throws IOException if not enough bytes are available or in case of
+     *                     errors in the source stream.
+     */
+    public short readLEShort() throws IOException {
+        int next = source.read();
+        if (next < 0) {
+            throw new IOException("not enough bytes (2 missing)");
+        }
+        short ret = (short)next;
+
+        next = source.read();
+        if (next < 0) {
+            throw new IOException("not enough bytes (1 missing)");
+        }
+        ret |= (next << 8);
 
         return ret;
     }
@@ -170,7 +189,7 @@ public class PacketInputStream extends InputStream {
 
     public InitCommandAcknowledge readInitCommandAcknowledge() throws IOException {
         return new InitCommandAcknowledge(
-            readBEInt(),
+            readLEInt(),
             readBytes(16),
             readString(),
             readVersion()
@@ -186,7 +205,7 @@ public class PacketInputStream extends InputStream {
     }
 
     public InitEventRequest readInitEventRequest() throws IOException {
-        return new InitEventRequest(readBEInt());
+        return new InitEventRequest(readLEInt());
     }
 
     public InitEventAcknowledge readInitEventAcknowledge() throws IOException {
@@ -195,5 +214,18 @@ public class PacketInputStream extends InputStream {
 
     public InitError readInitError() throws IOException {
         return new InitError(readBEInt());
+    }
+
+    public OperationRequest readOperationRequest() throws IOException {
+        int dataPhaseInfo = readLEInt();
+        short code = readLEShort();
+        int transaction = readLEInt();
+
+        return new OperationRequest(code, dataPhaseInfo, transaction);
+    }
+
+    @Override
+    public void close() {
+        System.out.println("CLOSING " + this);
     }
 }

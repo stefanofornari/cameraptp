@@ -16,36 +16,37 @@
 */
 package ste.ptp.ip;
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import static ste.ptp.ip.Utils.bigEndian;
 import static ste.ptp.ip.Utils.littleEndian;
 
 /**
  *
  */
-public class PacketOutputStream extends OutputStream {
-
-    private final OutputStream destination;
+public class PacketOutputStream extends BufferedOutputStream {
 
     public PacketOutputStream(OutputStream destination) {
+        super(destination);
+
         if (destination == null) {
             throw new IllegalArgumentException("destination can not be null");
         }
-        this.destination = destination;
     }
 
     public int write(InitCommandRequest payload) throws IOException {
         byte[] hostnameBuf = payload.hostname.getBytes("UTF_16LE");
 
-        destination.write(payload.guid);
-        destination.write(hostnameBuf); destination.write(0); destination.write(0);
+        write(payload.guid);
+        write(hostnameBuf); write(0); write(0);
 
         int pos = payload.version.indexOf('.');
         int major = Integer.parseInt(payload.version.substring(0, pos));
         int minor = Integer.parseInt(payload.version.substring(pos+1));
 
-        destination.write(minor & 0x00ff); destination.write((minor & 0xff00) >> 8);
-        destination.write(major & 0x00ff); destination.write((major & 0xff00) >> 8);
+        write(minor & 0x00ff); write((minor & 0xff00) >> 8);
+        write(major & 0x00ff); write((major & 0xff00) >> 8);
 
         return 16 + hostnameBuf.length + 2 + 4;
     }
@@ -53,35 +54,41 @@ public class PacketOutputStream extends OutputStream {
     public int write(InitCommandAcknowledge payload) throws IOException {
         byte[] hostnameBuf = payload.hostname.getBytes("UTF_16LE");
 
-        writeBEInt(payload.sessionId);
+        writeLEInt(payload.sessionId);
 
-        destination.write(payload.guid);
-        destination.write(hostnameBuf); destination.write(0); destination.write(0);
+        write(payload.guid);
+        write(hostnameBuf); write(0); write(0);
 
         int pos = payload.version.indexOf('.');
         int major = Integer.parseInt(payload.version.substring(0, pos));
         int minor = Integer.parseInt(payload.version.substring(pos+1));
 
-        destination.write(minor & 0x00ff); destination.write((minor & 0xff00) >> 8);
-        destination.write(major & 0x00ff); destination.write((major & 0xff00) >> 8);
+        write(minor & 0x00ff); write((minor & 0xff00) >> 8);
+        write(major & 0x00ff); write((major & 0xff00) >> 8);
 
         return 20 + hostnameBuf.length + 2 + 4;
     }
 
     public int write(InitEventRequest payload) throws IOException {
-        return writeBEInt(payload.sessionId);
+        return writeLEInt(payload.sessionId);
     }
 
     public int write(InitError payload) throws IOException {
         return writeBEInt(payload.error);
     }
 
+    public int write(OperationRequest payload) throws IOException {
+        return
+            writeLEInt(payload.dataPhaseInfo) +
+            writeLEShort((short)payload.code) +
+            writeLEInt(payload.transaction);
+    }
+
     public int write(PTPIPContainer container) {
         try {
-            destination.write(littleEndian(container.getSize()));
-            destination.write(littleEndian(container.payload.getType()));
+            writeLEInt(container.getSize());
+            writeLEInt(container.payload.getType());
             write(container.payload);
-            destination.flush();
         } catch (IOException x) {
             x.printStackTrace();
         }
@@ -100,22 +107,22 @@ public class PacketOutputStream extends OutputStream {
             return 0;
         } else if (payload instanceof InitError) {
             return write((InitError)payload);
+        } else if (payload instanceof OperationRequest) {
+            return write((OperationRequest)payload);
         }
 
         throw new IOException("unsupported payload " + payload.getClass());
     }
 
     public int writeBEInt(int i) throws IOException {
-        destination.write((i & 0xff000000) >> 24);
-        destination.write((i & 0x00ff0000) >> 16);
-        destination.write((i & 0x0000ff00) >> 8 );
-        destination.write((i & 0x000000ff)      );
-
-        return 4;
+        write(bigEndian(i)); return 4;
     }
 
-    @Override
-    public void write(int b) throws IOException {
-        destination.write(b);
+    public int writeLEInt(int i) throws IOException {
+        write(littleEndian(i)); return 4;
+    }
+
+    public int writeLEShort(short s) throws IOException {
+        write(littleEndian(s)); return 2;
     }
 }

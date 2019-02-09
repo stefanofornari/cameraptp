@@ -31,4 +31,33 @@ public class Utils {
 
         return buf;
     }
+
+    public static byte[] littleEndian(short s) {
+        byte[] buf = new byte[2];
+
+        buf[0] = (byte)(s & 0x00ff);
+        buf[1] = (byte)((s>>8) & 0x00ff);
+
+        return buf;
+    }
+
+    public static byte[] bigEndian(int i) {
+        byte[] buf = new byte[4];
+
+        buf[3] = (byte)(i & 0x000000ff);
+        buf[2] = (byte)((i>>8) & 0x000000ff);
+        buf[1] = (byte)((i>>16) & 0x000000ff);
+        buf[0] = (byte)((i>>24) & 0x000000ff);
+
+        return buf;
+    }
+
+    public static byte[] bigEndian(short s) {
+        byte[] buf = new byte[2];
+
+        buf[1] = (byte)(s & 0x00ff);
+        buf[0] = (byte)((s>>8) & 0x00ff);
+
+        return buf;
+    }
 }
