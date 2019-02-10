@@ -36,7 +36,7 @@ public class InitError extends Payload {
     }
 
     public int getType() {
-        return Constants.PacketType.INIT_COMMAND_FAIL.type();
+        return Constants.INIT_COMMAND_FAIL;
     }
 
     public int getSize() {

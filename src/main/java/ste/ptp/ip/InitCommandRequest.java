@@ -16,7 +16,7 @@
 */
 package ste.ptp.ip;
 
-import static ste.ptp.ip.Constants.PacketType.INIT_COMMAND_REQUEST;
+import static ste.ptp.ip.Constants.INIT_COMMAND_REQUEST;
 
 /**
  *
@@ -40,7 +40,7 @@ public class InitCommandRequest extends Payload {
     }
 
     public int getType() {
-        return INIT_COMMAND_REQUEST.type();
+        return INIT_COMMAND_REQUEST;
     }
 
     public int getSize() {

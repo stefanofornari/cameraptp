@@ -27,7 +27,7 @@ public class BugFreeErrorPayload {
 
     @Test
     public void error_payload_type() {
-        then(new InitError(0x00112233).getType()).isEqualTo(Constants.PacketType.INIT_COMMAND_FAIL.type());
+        then(new InitError(0x00112233).getType()).isEqualTo(Constants.INIT_COMMAND_FAIL);
     }
 
     @Test

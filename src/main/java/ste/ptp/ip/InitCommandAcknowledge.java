@@ -17,7 +17,7 @@
 
 package ste.ptp.ip;
 
-import static ste.ptp.ip.Constants.PacketType.INIT_COMMAND_ACK;
+import static ste.ptp.ip.Constants.INIT_COMMAND_ACK;
 
 /**
  *
@@ -37,7 +37,7 @@ public class InitCommandAcknowledge extends InitCommandRequest {
     }
 
     public int getType() {
-        return INIT_COMMAND_ACK.type();
+        return INIT_COMMAND_ACK;
     }
 
     public int getSize() {

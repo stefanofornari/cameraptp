@@ -16,7 +16,7 @@
 */
 package ste.ptp.ip;
 
-import static ste.ptp.ip.Constants.PacketType.OPERATION_REQUEST;
+import static ste.ptp.ip.Constants.OPERATION_REQUEST;
 
 /**
  *
@@ -43,7 +43,7 @@ public class OperationRequest extends Payload {
     }
 
     public int getType() {
-        return OPERATION_REQUEST.type();
+        return OPERATION_REQUEST;
     }
 
     public int getSize() {

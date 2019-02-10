@@ -17,16 +17,31 @@
 package ste.ptp.ip;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
+import ste.ptp.Command;
 
 /**
  *
  * @author ste
  */
 public class BugFreePacketInputStream {
+
+    private static final byte[] GUID1 = new byte[] {
+        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+        (byte)0x00, (byte)0x01, (byte)0xf4, (byte)0xa9,
+        (byte)0x97, (byte)0xfa, (byte)0x6a, (byte)0xac
+    };
+    private static final byte[] GUID2 = new byte[] {
+        (byte)0x01, (byte)0x02, (byte)0x03, (byte)0x04,
+        (byte)0x10, (byte)0x20, (byte)0x30, (byte)0x40,
+        (byte)0x0a, (byte)0x0b, (byte)0x0c, (byte)0x0d,
+        (byte)0xa0, (byte)0xb0, (byte)0xc0, (byte)0xd0
+    };
 
     @Test
     public void from_input_stream() throws Exception  {
@@ -464,5 +479,47 @@ public class BugFreePacketInputStream {
         } catch (IOException x) {
             then(x).hasMessage("not enough bytes (4 missing)");
         }
+    }
+
+    @Test
+    public void read_generic_packets() throws Exception {
+        final ByteArrayOutputStream OS = new ByteArrayOutputStream();
+        final InitCommandRequest CR = new InitCommandRequest(GUID1, "mypc1", "1.0");
+        final InitCommandAcknowledge CA = new InitCommandAcknowledge(0x00010203, GUID2, "mypc2", "1.1");
+        final InitEventAcknowledge EA = new InitEventAcknowledge();
+        final InitError E = new InitError(0x0a0b);
+        final OperationRequest OR = new OperationRequest(Command.GetDeviceInfo);
+
+        PacketOutputStream out = new PacketOutputStream(OS);
+        out.write(new PTPIPContainer(CR));
+        out.write(new PTPIPContainer(CA));
+        out.write(new PTPIPContainer(EA));
+        out.write(new PTPIPContainer(E));
+        out.write(new PTPIPContainer(OR));
+        //
+        // unknown package
+        out.writeLEInt(0x0000001d); out.writeLEInt(0x00100010);
+        out.write(new byte[] {(byte)0x00, (byte)0x01, (byte)0x02, (byte)0x03, (byte)0x04, (byte)0x05});
+        //
+
+        out.flush();
+
+        PacketInputStream is = new PacketInputStream(
+            new ByteArrayInputStream(OS.toByteArray())
+        );
+
+        then(is.readPTPContainer().payload).isInstanceOf(InitCommandRequest.class);
+        then(is.readPTPContainer().payload).isInstanceOf(InitCommandAcknowledge.class);
+        then(is.readPTPContainer().payload).isInstanceOf(InitEventAcknowledge.class);
+        then(is.readPTPContainer().payload).isInstanceOf(InitError.class);
+        then(is.readPTPContainer().payload).isInstanceOf(OperationRequest.class);
+
+        try {
+            is.readPTPContainer();
+            fail("missing unknown package error");
+        } catch (IOException x) {
+            then(x).hasMessage("unknown package 0x00100010 (size: 29 bytes)");
+        }
+
     }
 }

@@ -35,7 +35,7 @@ public class InitEventRequest extends Payload {
     }
 
     public int getType() {
-        return Constants.PacketType.INIT_EVENT_REQUEST.type();
+        return Constants.INIT_EVENT_REQUEST;
     }
 
     public int getSize() {

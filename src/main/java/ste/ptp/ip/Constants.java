@@ -20,23 +20,10 @@ package ste.ptp.ip;
  *
  */
 public interface Constants {
-    public enum PacketType {
-        INIT_COMMAND_REQUEST(0x00000001),
-        INIT_COMMAND_ACK(0x00000002),
-        INIT_EVENT_REQUEST(0x00000003),
-        INIT_EVENT_ACK(0x00000004),
-        INIT_COMMAND_FAIL(0x00000005),
-        OPERATION_REQUEST(0x00000006);
-
-
-        private int type;
-
-        PacketType(int type) {
-            this.type = type;
-        }
-
-        public int type() {
-            return type;
-        }
-    }
+    public final static int INIT_COMMAND_REQUEST = 0x00000001;
+    public final static int INIT_COMMAND_ACK     = 0x00000002;
+    public final static int INIT_EVENT_REQUEST   = 0x00000003;
+    public final static int INIT_EVENT_ACK       = 0x00000004;
+    public final static int INIT_COMMAND_FAIL    = 0x00000005;
+    public final static int OPERATION_REQUEST    = 0x00000006;
 }

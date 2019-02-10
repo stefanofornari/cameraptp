@@ -224,8 +224,39 @@ public class PacketInputStream extends InputStream {
         return new OperationRequest(code, dataPhaseInfo, transaction);
     }
 
-    @Override
-    public void close() {
-        System.out.println("CLOSING " + this);
+    public PTPIPContainer readPTPContainer() throws IOException {
+        int size = readLEInt();  // size
+
+        PTPIPContainer packet = new PTPIPContainer();
+        packet.type = readLEInt();
+
+        switch (packet.type) {
+            case Constants.INIT_COMMAND_REQUEST:
+                packet.payload = readInitCommandRequest();
+                break;
+            case Constants.INIT_COMMAND_ACK:
+                packet.payload = readInitCommandAcknowledge();
+                break;
+            case Constants.INIT_COMMAND_FAIL:
+                packet.payload = readInitError();
+                break;
+            case Constants.INIT_EVENT_REQUEST:
+                packet.payload = readInitEventRequest();
+                break;
+            case Constants.INIT_EVENT_ACK:
+                packet.payload = readInitEventAcknowledge();
+                break;
+            case Constants.OPERATION_REQUEST:
+                packet.payload = readOperationRequest();
+                break;
+
+            default:
+                throw new IOException(
+                    String.format("unknown package %#010x (size: %d bytes)", packet.type, size)
+                );
+        }
+
+        return packet;
     }
+
 }

@@ -27,7 +27,7 @@ public class BugFreeInitEventRequest {
 
     @Test
     public void init_event_request_payload_type() {
-        then(new InitEventRequest(0x01).getType()).isEqualTo(Constants.PacketType.INIT_EVENT_REQUEST.type());
+        then(new InitEventRequest(0x01).getType()).isEqualTo(Constants.INIT_EVENT_REQUEST);
     }
 
     @Test

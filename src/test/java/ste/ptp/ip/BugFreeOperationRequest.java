@@ -28,7 +28,7 @@ public class BugFreeOperationRequest {
 
     @Test
     public void operaqtion_request_payload_type() {
-        then(new OperationRequest(Command.GetDeviceInfo).getType()).isEqualTo(Constants.PacketType.OPERATION_REQUEST.type());
+        then(new OperationRequest(Command.GetDeviceInfo).getType()).isEqualTo(Constants.OPERATION_REQUEST);
     }
 
     @Test

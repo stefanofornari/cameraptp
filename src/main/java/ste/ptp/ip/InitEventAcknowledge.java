@@ -32,6 +32,6 @@ public class InitEventAcknowledge extends Payload {
 
     @Override
     public int getType() {
-        return Constants.PacketType.INIT_EVENT_ACK.type();
+        return Constants.INIT_EVENT_ACK;
     }
 }

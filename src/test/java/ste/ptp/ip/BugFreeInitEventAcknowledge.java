@@ -27,7 +27,7 @@ public class BugFreeInitEventAcknowledge {
 
     @Test
     public void init_event_ack_payload_type() {
-        then(new InitEventAcknowledge().getType()).isEqualTo(Constants.PacketType.INIT_EVENT_ACK.type());
+        then(new InitEventAcknowledge().getType()).isEqualTo(Constants.INIT_EVENT_ACK);
     }
 
     @Test
