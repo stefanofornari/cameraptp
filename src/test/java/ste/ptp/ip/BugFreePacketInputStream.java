@@ -22,7 +22,7 @@ import java.io.IOException;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
-import ste.ptp.Command;
+import ste.ptp.OpenSessionOperation;
 
 /**
  *
@@ -450,28 +450,30 @@ public class BugFreePacketInputStream {
                 // 1st
                 //
                 (byte)0x01, (byte)0x00, (byte)0x00, (byte)0x00, // --- data phase info
-                (byte)0x01, (byte)0x10,                         // --- operation code
+                (byte)0x2c, (byte)0x90,                         // --- operation code
                 (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, // --- transaction id
                 //
                 // 2nd
                 //
                 (byte)0x01, (byte)0x20, (byte)0x00, (byte)0x00, // --- data phase info
-                (byte)0x02, (byte)0x20,                         // --- operation code
-                (byte)0x01, (byte)0x00, (byte)0x02, (byte)0x00  // --- transaction id
+                (byte)0x02, (byte)0x10,                         // --- operation code
+                (byte)0x01, (byte)0x00, (byte)0x02, (byte)0x00, // --- session id
+                (byte)0x00, (byte)0x03, (byte)0x00, (byte)0x04  // --- transaction id
             }
         );
 
         PacketInputStream is = new PacketInputStream(IS);
 
         OperationRequest or = is.readOperationRequest();
-        then(or.code).isEqualTo(0x1001);
+        then(or.operation.getCode()).isEqualTo(0x902c);
         then(or.dataPhaseInfo).isEqualTo(1);
         then(or.transaction).isEqualTo(0);
 
         or = is.readOperationRequest();
-        then(or.code).isEqualTo(0x2002);
+        then(or.operation.getCode()).isEqualTo(0x1002);
         then(or.dataPhaseInfo).isEqualTo(0x00002001);
-        then(or.transaction).isEqualTo(0x00020001);
+        then(((OpenSessionOperation)or.operation).getSession()).isEqualTo(0x00020001);
+        then(or.transaction).isEqualTo(0x04000300);
 
         try {
             is.readOperationRequest();
@@ -488,7 +490,7 @@ public class BugFreePacketInputStream {
         final InitCommandAcknowledge CA = new InitCommandAcknowledge(0x00010203, GUID2, "mypc2", "1.1");
         final InitEventAcknowledge EA = new InitEventAcknowledge();
         final InitError E = new InitError(0x0a0b);
-        final OperationRequest OR = new OperationRequest(Command.GetDeviceInfo);
+        final OperationRequest OR = new OperationRequest(new OpenSessionOperation());
 
         PacketOutputStream out = new PacketOutputStream(OS);
         out.write(new PTPIPContainer(CR));

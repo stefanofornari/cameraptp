@@ -24,6 +24,7 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
 import ste.ptp.Command;
+import ste.ptp.OpenSessionOperation;
 
 /**
  *
@@ -166,34 +167,24 @@ public class BugFreePacketOutputStream {
     }
 
     @Test
-    public void write_operation_request() throws Exception {
+    public void write_open_session_operaton_request() throws Exception {
         final ByteArrayOutputStream OS = new ByteArrayOutputStream();
-        final OperationRequest[] R = new OperationRequest[] {
-            new OperationRequest(Command.GetDeviceInfo),
-            new OperationRequest(Command.CopyObject, 0x00110011),
-            new OperationRequest(Command.GetObject, 0x00000002, 0x11001100),
-        };
-
         PacketOutputStream out = new PacketOutputStream(OS);
-        for (OperationRequest r: R) {
-            out.write(r); out.flush();
-        }
+        out.write(new OperationRequest(new OpenSessionOperation(0x01020304), 0x01, 0x10)); out.flush();
 
         PacketInputStream is = new PacketInputStream(
             new ByteArrayInputStream(OS.toByteArray())
         );
 
-        for (OperationRequest r: R) {
-            OperationRequest req = is.readOperationRequest();
-
-            then(req.code).isEqualTo(r.code);
-            then(req.transaction).isEqualTo(r.transaction);
-        }
+        OperationRequest req = is.readOperationRequest();
+        then(req.operation.getCode()).isEqualTo(Command.OpenSession);
+        then(req.transaction).isEqualTo(0x10);
+        then(req.dataPhaseInfo).isEqualTo(1);
     }
 
     @Test
     public void write_operation_request_io_error() throws Exception {
-        final OperationRequest R = new OperationRequest(Command.EosBulbEnd);
+        final OperationRequest R = new OperationRequest(new OpenSessionOperation());
 
         PacketOutputStream out = new PacketOutputStream(new BrokenOutputStream());
         try {
@@ -211,7 +202,7 @@ public class BugFreePacketOutputStream {
         final InitCommandAcknowledge CA = new InitCommandAcknowledge(0x00010203, GUID2, "mypc2", "1.1");
         final InitEventAcknowledge EA = new InitEventAcknowledge();
         final InitError E = new InitError(0x0a0b);
-        final OperationRequest OR = new OperationRequest(Command.GetDeviceInfo);
+        final OperationRequest OR = new OperationRequest(new OpenSessionOperation());
 
         PacketOutputStream out = new PacketOutputStream(OS);
         out.write(CR);
@@ -229,7 +220,7 @@ public class BugFreePacketOutputStream {
         then(is.readInitCommandAcknowledge().guid).containsExactly(GUID2);
         is.readInitEventAcknowledge();
         then(is.readInitError().error).isEqualTo(E.error);
-        then(is.readOperationRequest().code).isEqualTo(Command.GetDeviceInfo);
+        then(is.readOperationRequest().operation.getCode()).isEqualTo(Command.OpenSession);
     }
 
     // ------------------------------------------------------ BrokenOutputStream

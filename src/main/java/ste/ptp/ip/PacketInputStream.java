@@ -18,6 +18,9 @@ package ste.ptp.ip;
 
 import java.io.IOException;
 import java.io.InputStream;
+import ste.ptp.Command;
+import ste.ptp.GenericCanonOperation;
+import ste.ptp.OpenSessionOperation;
 
 /**
  *
@@ -122,12 +125,12 @@ public class PacketInputStream extends InputStream {
      * @throws IOException if not enough bytes are available or in case of
      *                     errors in the source stream.
      */
-    public short readLEShort() throws IOException {
+    public int readLEShort() throws IOException {
         int next = source.read();
         if (next < 0) {
             throw new IOException("not enough bytes (2 missing)");
         }
-        short ret = (short)next;
+        int ret = next;
 
         next = source.read();
         if (next < 0) {
@@ -218,10 +221,17 @@ public class PacketInputStream extends InputStream {
 
     public OperationRequest readOperationRequest() throws IOException {
         int dataPhaseInfo = readLEInt();
-        short code = readLEShort();
-        int transaction = readLEInt();
+        int code = readLEShort();
 
-        return new OperationRequest(code, dataPhaseInfo, transaction);
+        switch (code) {
+            case Command.OpenSession:
+                return new OperationRequest(new OpenSessionOperation(readLEInt()), dataPhaseInfo, readLEInt());
+
+            case Command.Canon902c:
+                return new OperationRequest(new GenericCanonOperation(code), dataPhaseInfo, readLEInt());
+
+        }
+        throw new IOException("operation " + code + " not implemented yet");
     }
 
     public PTPIPContainer readPTPContainer() throws IOException {

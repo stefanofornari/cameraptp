@@ -1,4 +1,4 @@
-/* Copyright 2018 by Stefano Fornari
+/* Copyright 2019 by Stefano Fornari
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,36 +14,31 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
-package ste.ptp.ip;
-
-import ste.ptp.Operation;
-import static ste.ptp.ip.Constants.OPERATION_REQUEST;
+package ste.ptp;
 
 /**
  *
- *
+ * @author ste
  */
-public class OperationRequest extends Payload {
+public class OpenSessionOperation implements Operation {
 
-    public Operation operation;
-    public int transaction;
-    public int dataPhaseInfo;
+    private int session;
 
-    public OperationRequest(Operation o) {
-        this(o, 0, 0);
+    public OpenSessionOperation() {
+        this(0);
     }
 
-    public OperationRequest(Operation o, int dataPassInfo, int transaction) {
-        this.operation = o;
-        this.transaction = transaction;
-        this.dataPhaseInfo = dataPassInfo;
+
+    public OpenSessionOperation(int session) {
+        this.session = session;
     }
 
-    public int getType() {
-        return OPERATION_REQUEST;
+    public int getSession() {
+        return session;
     }
 
-    public int getSize() {
-        return 14;
+    public int getCode() {
+        return Command.OpenSession;
     }
+
 }

@@ -19,6 +19,8 @@ package ste.ptp.ip;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
 import ste.ptp.Command;
+import ste.ptp.OpenSessionOperation;
+import ste.ptp.Operation;
 
 /**
  *
@@ -28,49 +30,81 @@ public class BugFreeOperationRequest {
 
     @Test
     public void operaqtion_request_payload_type() {
-        then(new OperationRequest(Command.GetDeviceInfo).getType()).isEqualTo(Constants.OPERATION_REQUEST);
+        then(new OperationRequest(new Operation() {}).getType()).isEqualTo(Constants.OPERATION_REQUEST);
     }
 
     @Test
     public void operation_payload_size() {
-        then(new OperationRequest(0x01).getSize()).isEqualTo(14);
+        then(new OperationRequest(new Operation() {}).getSize()).isEqualTo(14);
     }
 
     @Test
     public void operation_payload_constructor() {
-        OperationRequest O = new OperationRequest(Command.GetDeviceInfo);
+        OperationRequest O = new OperationRequest(new OpenSessionOperation());
 
-        then(O.code).isEqualTo(Command.GetDeviceInfo);
+        then(O.operation.getCode()).isEqualTo((short)Command.OpenSession);
         then(O.transaction).isEqualTo(0);
         then(O.dataPhaseInfo).isEqualTo(0);
 
-        O = new OperationRequest(Command.DeleteObject, 10);
-        then(O.code).isEqualTo(Command.DeleteObject);
+        O = new OperationRequest(new Operation() {
+            @Override
+            public int getCode() {
+                return Command.DeleteObject;
+            }
+        }, 01, 10);
+        then(O.operation.getCode()).isEqualTo((short)Command.DeleteObject);
         then(O.transaction).isEqualTo(10);
-        then(O.dataPhaseInfo).isEqualTo(0);
-
-        O = new OperationRequest(Command.DeleteObject, 2, 1000);
-        then(O.code).isEqualTo(Command.DeleteObject);
-        then(O.transaction).isEqualTo(1000);
-        then(O.dataPhaseInfo).isEqualTo(2);
+        then(O.dataPhaseInfo).isEqualTo(1);
     }
 
     @Test
-    public void operation_paylot_with_code() {
-        OperationRequest r = new OperationRequest(0x01020304);
-        then(r.code).isEqualTo(0x01020304); then(r.transaction).isZero();
+    public void operation_payload_with_code() {
+        OperationRequest r = new OperationRequest(
+            new Operation() {
+                @Override
+                public int getCode() {
+                    return 0x0102;
+                }
+            }
+        );
+        then(r.operation.getCode()).isEqualTo((short)0x0102); then(r.transaction).isZero();
 
-        r = new OperationRequest(0x0a0b0c0d);
-        then(r.code).isEqualTo(0x0a0b0c0d); then(r.transaction).isZero();
+        r = new OperationRequest(
+            new Operation() {
+                @Override
+                public int getCode() {
+                    return 0x0a0b;
+                }
+            }
+        );
+        then(r.operation.getCode()).isEqualTo((short)0x0a0b); then(r.transaction).isZero();
     }
 
     @Test
     public void operation_payload_with_session() {
-        OperationRequest r = new OperationRequest(0x01020304, 0x00110011);
-        then(r.code).isEqualTo(0x01020304); then(r.transaction).isEqualTo(0x00110011);
+        OperationRequest r = new OperationRequest(
+            new Operation() {
+                @Override
+                public int getCode() {
+                    return 0x0102;
+                }
+            }, 0x01, 0x00110011
+        );
+        then(r.operation.getCode()).isEqualTo((short)0x0102);
+        then(r.transaction).isEqualTo(0x00110011);
+        then(r.dataPhaseInfo).isEqualTo(0x01);
 
-        r = new OperationRequest(0x0a0b0c0d, 0x11001100);
-        then(r.code).isEqualTo(0x0a0b0c0d); then(r.transaction).isEqualTo(0x11001100);
+        r = new OperationRequest(
+            new Operation() {
+                @Override
+                public int getCode() {
+                    return 0x0a0b;
+                }
+            }, 0x02, 0x11001100
+        );
+        then(r.operation.getCode()).isEqualTo((short)0x0a0b);
+        then(r.transaction).isEqualTo(0x11001100);
+        then(r.dataPhaseInfo).isEqualTo(0x02);
     }
 
 

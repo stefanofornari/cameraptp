@@ -19,6 +19,7 @@ package ste.ptp.ip;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import ste.ptp.OpenSessionOperation;
 import static ste.ptp.ip.Utils.bigEndian;
 import static ste.ptp.ip.Utils.littleEndian;
 
@@ -80,8 +81,10 @@ public class PacketOutputStream extends BufferedOutputStream {
     public int write(OperationRequest payload) throws IOException {
         return
             writeLEInt(payload.dataPhaseInfo) +
-            writeLEShort((short)payload.code) +
+            writeLEShort(payload.operation.getCode()) +
+            writeLEInt(((OpenSessionOperation)payload.operation).getSession()) +
             writeLEInt(payload.transaction);
+
     }
 
     public int write(PTPIPContainer container) {
@@ -122,7 +125,7 @@ public class PacketOutputStream extends BufferedOutputStream {
         write(littleEndian(i)); return 4;
     }
 
-    public int writeLEShort(short s) throws IOException {
-        write(littleEndian(s)); return 2;
+    public int writeLEShort(int s) throws IOException {
+        write(littleEndian((short)s)); return 2;
     }
 }
