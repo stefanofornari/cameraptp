@@ -234,6 +234,10 @@ public class PacketInputStream extends InputStream {
         throw new IOException("operation " + code + " not implemented yet");
     }
 
+    public OperationResponse readOperationResponse() throws IOException {
+        return new OperationResponse(readLEShort(), readLEInt());
+    }
+
     public PTPIPContainer readPTPContainer() throws IOException {
         int size = readLEInt();  // size
 
@@ -258,6 +262,9 @@ public class PacketInputStream extends InputStream {
                 break;
             case Constants.OPERATION_REQUEST:
                 packet.payload = readOperationRequest();
+                break;
+            case Constants.OPERATION_RESPONSE:
+                packet.payload = readOperationResponse();
                 break;
 
             default:

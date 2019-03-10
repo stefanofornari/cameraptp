@@ -490,14 +490,16 @@ public class BugFreePacketInputStream {
         final InitCommandAcknowledge CA = new InitCommandAcknowledge(0x00010203, GUID2, "mypc2", "1.1");
         final InitEventAcknowledge EA = new InitEventAcknowledge();
         final InitError E = new InitError(0x0a0b);
-        final OperationRequest OR = new OperationRequest(new OpenSessionOperation());
+        final OperationRequest ORQ = new OperationRequest(new OpenSessionOperation());
+        final OperationResponse ORS = new OperationResponse(0x2001, 10);
 
         PacketOutputStream out = new PacketOutputStream(OS);
         out.write(new PTPIPContainer(CR));
         out.write(new PTPIPContainer(CA));
         out.write(new PTPIPContainer(EA));
         out.write(new PTPIPContainer(E));
-        out.write(new PTPIPContainer(OR));
+        out.write(new PTPIPContainer(ORQ));
+        out.write(new PTPIPContainer(ORS));
         //
         // unknown package
         out.writeLEInt(0x0000001d); out.writeLEInt(0x00100010);
@@ -515,6 +517,7 @@ public class BugFreePacketInputStream {
         then(is.readPTPContainer().payload).isInstanceOf(InitEventAcknowledge.class);
         then(is.readPTPContainer().payload).isInstanceOf(InitError.class);
         then(is.readPTPContainer().payload).isInstanceOf(OperationRequest.class);
+        then(is.readPTPContainer().payload).isInstanceOf(OperationResponse.class);
 
         try {
             is.readPTPContainer();

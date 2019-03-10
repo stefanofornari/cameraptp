@@ -84,17 +84,17 @@ public class PacketOutputStream extends BufferedOutputStream {
             writeLEShort(payload.operation.getCode()) +
             writeLEInt(((OpenSessionOperation)payload.operation).getSession()) +
             writeLEInt(payload.transaction);
-
     }
 
-    public int write(PTPIPContainer container) {
-        try {
-            writeLEInt(container.getSize());
-            writeLEInt(container.payload.getType());
-            write(container.payload);
-        } catch (IOException x) {
-            x.printStackTrace();
-        }
+    public int write(OperationResponse payload) throws IOException {
+        return writeLEShort(payload.status) +
+               writeLEInt(payload.transaction);
+    }
+
+    public int write(PTPIPContainer container) throws IOException {
+        writeLEInt(container.getSize());
+        writeLEInt(container.payload.getType());
+        write(container.payload);
 
         return container.getSize();
     }
@@ -112,6 +112,8 @@ public class PacketOutputStream extends BufferedOutputStream {
             return write((InitError)payload);
         } else if (payload instanceof OperationRequest) {
             return write((OperationRequest)payload);
+        } else if (payload instanceof OperationResponse) {
+            return write((OperationResponse)payload);
         }
 
         throw new IOException("unsupported payload " + payload.getClass());

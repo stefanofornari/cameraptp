@@ -1,4 +1,4 @@
-/* Copyright 2019 by Stefano Fornari
+/* Copyright 2018 by Stefano Fornari
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,17 +14,31 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+
 package ste.ptp.ip;
 
 /**
  *
+ *
  */
-public interface Constants {
-    public final static int INIT_COMMAND_REQUEST = 0x00000001;
-    public final static int INIT_COMMAND_ACK     = 0x00000002;
-    public final static int INIT_EVENT_REQUEST   = 0x00000003;
-    public final static int INIT_EVENT_ACK       = 0x00000004;
-    public final static int INIT_COMMAND_FAIL    = 0x00000005;
-    public final static int OPERATION_REQUEST    = 0x00000006;
-    public final static int OPERATION_RESPONSE   = 0x00000007;
+public class OperationResponse extends Payload {
+    public final int status, transaction;
+
+    /**
+     *
+     */
+    public OperationResponse(int status, int transaction) {
+        super();
+        this.status = status; this.transaction = transaction;
+    }
+
+    @Override
+    public int getType() {
+        return Constants.OPERATION_RESPONSE;
+    }
+
+    @Override
+    public int getSize() {
+        return 6;
+    }
 }
