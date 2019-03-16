@@ -29,12 +29,22 @@ public class BugFreeOpenSessionOperation {
     public void constructor_initializes_fields() {
         OpenSessionOperation cmd = new OpenSessionOperation();
 
-        then(cmd.getCode()).isEqualTo(Command.OpenSession);
-        then(cmd.getSession()).isZero();
+        then(cmd.code).isEqualTo(Command.OpenSession);
+        then(cmd.session).isZero();
 
         cmd = new OpenSessionOperation(0x00112233);
-        then(cmd.getCode()).isEqualTo(Command.OpenSession);
-        then(cmd.getSession()).isEqualTo(0x00112233);
+        then(cmd.code).isEqualTo(Command.OpenSession);
+        then(cmd.session).isEqualTo(0x00112233);
+    }
+
+    @Test
+    public void session_in_parameters() {
+        OpenSessionOperation cmd = new OpenSessionOperation();
+        then(cmd.getParams()).containsExactly(0);
+
+        cmd = new OpenSessionOperation(0x00112233);
+        then(cmd.getParams()).containsExactly(0x00112233);
+
     }
 
 }

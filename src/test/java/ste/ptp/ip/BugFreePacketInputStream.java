@@ -450,7 +450,7 @@ public class BugFreePacketInputStream {
                 // 1st
                 //
                 (byte)0x01, (byte)0x00, (byte)0x00, (byte)0x00, // --- data phase info
-                (byte)0x2c, (byte)0x90,                         // --- operation code
+                (byte)0x2f, (byte)0x90,                         // --- operation code
                 (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, // --- transaction id
                 //
                 // 2nd
@@ -465,14 +465,14 @@ public class BugFreePacketInputStream {
         PacketInputStream is = new PacketInputStream(IS);
 
         OperationRequest or = is.readOperationRequest();
-        then(or.operation.getCode()).isEqualTo(0x902c);
+        then(or.operation.code).isEqualTo(0x902f);
         then(or.dataPhaseInfo).isEqualTo(1);
         then(or.transaction).isEqualTo(0);
 
         or = is.readOperationRequest();
-        then(or.operation.getCode()).isEqualTo(0x1002);
+        then(or.operation.code).isEqualTo(0x1002);
         then(or.dataPhaseInfo).isEqualTo(0x00002001);
-        then(((OpenSessionOperation)or.operation).getSession()).isEqualTo(0x00020001);
+        then(((OpenSessionOperation)or.operation).session).isEqualTo(0x00020001);
         then(or.transaction).isEqualTo(0x04000300);
 
         try {

@@ -16,19 +16,25 @@
 */
 package ste.ptp;
 
+import static org.assertj.core.api.BDDAssertions.then;
+import org.junit.Test;
+
 /**
  *
  * @author ste
  */
-public class GenericCanonOperation implements Operation {
+public class BugFreeOperation {
 
-    private int code;
-
-    public GenericCanonOperation(int code) {
-        this.code = code;
+    @Test
+    public void provide_operation_code() {
+        then(new Operation(0x0102).code).isEqualTo(0x0102);
+        then(new Operation(0x0201).code).isEqualTo(0x0201);
     }
 
-    public int getCode() {
-        return code;
+    @Test
+    public void no_parameters() {
+        then(new Operation(0x0102).getParams()).isEmpty();
+        then(new Operation(0x0201).getParams()).isEmpty();
     }
+
 }

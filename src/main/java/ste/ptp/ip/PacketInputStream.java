@@ -18,9 +18,10 @@ package ste.ptp.ip;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import ste.ptp.Command;
-import ste.ptp.GenericCanonOperation;
 import ste.ptp.OpenSessionOperation;
+import ste.ptp.Operation;
 
 /**
  *
@@ -219,19 +220,36 @@ public class PacketInputStream extends InputStream {
         return new InitError(readBEInt());
     }
 
-    public OperationRequest readOperationRequest() throws IOException {
-        int dataPhaseInfo = readLEInt();
-        int code = readLEShort();
+    public OperationRequest readOperationRequest(int available) throws IOException {
+        int dataPhaseInfo = readLEInt(); available -= 4;
+        int code = readLEShort(); available -= 2;
 
+        Operation operation;
         switch (code) {
             case Command.OpenSession:
-                return new OperationRequest(new OpenSessionOperation(readLEInt()), dataPhaseInfo, readLEInt());
+                operation = new OpenSessionOperation(readLEInt()); available -= 4;
+                break;
 
-            case Command.Canon902c:
-                return new OperationRequest(new GenericCanonOperation(code), dataPhaseInfo, readLEInt());
-
+            default:
+                operation = new Operation(code);
         }
-        throw new IOException("operation " + code + " not implemented yet");
+
+        int transaction = readLEInt(); available -= 4;
+
+        //
+        // If there are still bytes to read, it means we have additional
+        // parameters to read
+        //
+        ArrayList<Integer> paramList = new ArrayList<>();
+        while (available > 0) {
+            paramList.add(readLEInt()); available -= 4;
+        }
+        int[] params = new int[paramList.size()];
+        for(int i=0; i<params.length; ++i) {
+            params[i] = paramList.get(i);
+        }
+
+        return new OperationRequest(operation, dataPhaseInfo, transaction, params);
     }
 
     public OperationResponse readOperationResponse() throws IOException {
@@ -261,7 +279,7 @@ public class PacketInputStream extends InputStream {
                 packet.payload = readInitEventAcknowledge();
                 break;
             case Constants.OPERATION_REQUEST:
-                packet.payload = readOperationRequest();
+                packet.payload = readOperationRequest(size-8);
                 break;
             case Constants.OPERATION_RESPONSE:
                 packet.payload = readOperationResponse();

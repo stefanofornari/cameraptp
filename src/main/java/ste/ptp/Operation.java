@@ -18,11 +18,16 @@ package ste.ptp;
 
 /**
  *
- * @author ste
  */
-public interface Operation {
+public class Operation {
 
-    default public int getCode() {
-        return Command.Undefined;
+    public final int code;
+
+    public Operation(int code) {
+        this.code = code;
+    }
+
+    public int[] getParams() {
+        return new int[0];
     }
 }

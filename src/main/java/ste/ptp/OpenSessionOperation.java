@@ -20,9 +20,9 @@ package ste.ptp;
  *
  * @author ste
  */
-public class OpenSessionOperation implements Operation {
+public class OpenSessionOperation extends Operation {
 
-    private int session;
+    public final int session;
 
     public OpenSessionOperation() {
         this(0);
@@ -30,15 +30,12 @@ public class OpenSessionOperation implements Operation {
 
 
     public OpenSessionOperation(int session) {
+        super(Command.OpenSession);
         this.session = session;
     }
 
-    public int getSession() {
-        return session;
+    @Override
+    public int[] getParams() {
+        return new int[] { session };
     }
-
-    public int getCode() {
-        return Command.OpenSession;
-    }
-
 }

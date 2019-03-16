@@ -25,18 +25,19 @@ import static ste.ptp.ip.Constants.OPERATION_REQUEST;
  */
 public class OperationRequest extends Payload {
 
-    public Operation operation;
-    public int transaction;
-    public int dataPhaseInfo;
+    final public Operation operation;
+    final public int transaction;
+    final public int dataPhaseInfo;
+    final public int[] params;
 
     public OperationRequest(Operation o) {
         this(o, 0, 0);
     }
-
-    public OperationRequest(Operation o, int dataPassInfo, int transaction) {
+    public OperationRequest(Operation o, int dataPassInfo, int transaction, int... params) {
         this.operation = o;
         this.transaction = transaction;
         this.dataPhaseInfo = dataPassInfo;
+        this.params = params;
     }
 
     public int getType() {
@@ -44,6 +45,6 @@ public class OperationRequest extends Payload {
     }
 
     public int getSize() {
-        return 14;
+        return 8 + (2 + 4*operation.getParams().length) + 4*params.length;
     }
 }

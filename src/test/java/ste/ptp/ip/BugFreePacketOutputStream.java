@@ -25,6 +25,7 @@ import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
 import ste.ptp.Command;
 import ste.ptp.OpenSessionOperation;
+import ste.ptp.Operation;
 
 /**
  *
@@ -167,19 +168,34 @@ public class BugFreePacketOutputStream {
     }
 
     @Test
-    public void write_open_session_operaton_request() throws Exception {
-        final ByteArrayOutputStream OS = new ByteArrayOutputStream();
-        PacketOutputStream out = new PacketOutputStream(OS);
+    public void write_operation_request() throws Exception {
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        PacketOutputStream out = new PacketOutputStream(os);
         out.write(new OperationRequest(new OpenSessionOperation(0x01020304), 0x01, 0x10)); out.flush();
 
         PacketInputStream is = new PacketInputStream(
-            new ByteArrayInputStream(OS.toByteArray())
+            new ByteArrayInputStream(os.toByteArray())
         );
 
-        OperationRequest req = is.readOperationRequest();
-        then(req.operation.getCode()).isEqualTo(Command.OpenSession);
+        OperationRequest req = is.readOperationRequest(14);
+        then(req.operation.code).isEqualTo(Command.OpenSession);
         then(req.transaction).isEqualTo(0x10);
         then(req.dataPhaseInfo).isEqualTo(1);
+
+        //
+        // generic operation request with more parameters
+        //
+        os = new ByteArrayOutputStream(); out = new PacketOutputStream(os);
+        out.write(new OperationRequest(new Operation(0x0102), 0x01, 0x02, 0x03, 0x04)); out.flush();
+        is = new PacketInputStream(
+            new ByteArrayInputStream(os.toByteArray())
+        );
+
+        req = is.readOperationRequest(18);
+        then(req.operation.code).isEqualTo(0x0102);
+        then(req.transaction).isEqualTo(0x02);
+        then(req.dataPhaseInfo).isEqualTo(0x01);
+        then(req.params).containsExactly(0x03, 0x04);
     }
 
     @Test
@@ -220,7 +236,7 @@ public class BugFreePacketOutputStream {
         then(is.readInitCommandAcknowledge().guid).containsExactly(GUID2);
         is.readInitEventAcknowledge();
         then(is.readInitError().error).isEqualTo(E.error);
-        then(is.readOperationRequest().operation.getCode()).isEqualTo(Command.OpenSession);
+        then(is.readOperationRequest(14).operation.code).isEqualTo(Command.OpenSession);
     }
 
     // ------------------------------------------------------ BrokenOutputStream
