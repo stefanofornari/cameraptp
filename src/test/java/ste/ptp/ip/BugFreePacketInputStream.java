@@ -464,19 +464,19 @@ public class BugFreePacketInputStream {
 
         PacketInputStream is = new PacketInputStream(IS);
 
-        OperationRequest or = is.readOperationRequest();
+        OperationRequest or = is.readOperationRequest(10);
         then(or.operation.code).isEqualTo(0x902f);
         then(or.dataPhaseInfo).isEqualTo(1);
         then(or.transaction).isEqualTo(0);
 
-        or = is.readOperationRequest();
+        or = is.readOperationRequest(14);
         then(or.operation.code).isEqualTo(0x1002);
         then(or.dataPhaseInfo).isEqualTo(0x00002001);
         then(((OpenSessionOperation)or.operation).session).isEqualTo(0x00020001);
         then(or.transaction).isEqualTo(0x04000300);
 
         try {
-            is.readOperationRequest();
+            is.readOperationRequest(10);
             fail("no io error");
         } catch (IOException x) {
             then(x).hasMessage("not enough bytes (4 missing)");

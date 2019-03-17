@@ -35,7 +35,7 @@ public class BugFreeOperationRequest {
 
     @Test
     public void operation_request_payload_size() {
-        then(new OperationRequest(new Operation(Command.GetObject)).getSize()).isEqualTo(14);
+        then(new OperationRequest(new Operation(Command.GetObject)).getSize()).isEqualTo(10);
     }
 
     @Test

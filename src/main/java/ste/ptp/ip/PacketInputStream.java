@@ -156,7 +156,7 @@ public class PacketInputStream extends InputStream {
             }
             if (read < howMany) {
                 throw new IOException("not enough bytes (" + (howMany-read) + " missing)");
-            };
+            }
         }
 
         return ret;
