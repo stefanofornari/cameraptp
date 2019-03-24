@@ -30,7 +30,7 @@ public class BugFreeOpenSessionOperation {
         OpenSessionOperation cmd = new OpenSessionOperation();
 
         then(cmd.code).isEqualTo(Command.OpenSession);
-        then(cmd.session).isZero();
+        then(cmd.session).isEqualTo(0x01);
 
         cmd = new OpenSessionOperation(0x00112233);
         then(cmd.code).isEqualTo(Command.OpenSession);
@@ -40,7 +40,7 @@ public class BugFreeOpenSessionOperation {
     @Test
     public void session_in_parameters() {
         OpenSessionOperation cmd = new OpenSessionOperation();
-        then(cmd.getParams()).containsExactly(0);
+        then(cmd.getParams()).containsExactly(0x01);
 
         cmd = new OpenSessionOperation(0x00112233);
         then(cmd.getParams()).containsExactly(0x00112233);

@@ -33,6 +33,12 @@ JPhoto
 ------
 Camera PTP is a derivative work of JPhoto (http://jphoto.sourceforge.net/).
 
+PTP protocol
+------------
+I found some information about the PTP protocol here: https://people.ece.cornell.edu/land/courses/ece4760/FinalProjects/f2012/jmv87/site/files/pima15740-2000.pdf
+PIMA Inc. does not seem to exist any more and I could not find the original
+source.
+
 Disclaimers
 -----------
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR

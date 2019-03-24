@@ -224,6 +224,8 @@ public class PacketInputStream extends InputStream {
         int dataPhaseInfo = readLEInt(); available -= 4;
         int code = readLEShort(); available -= 2;
 
+        int transaction = readLEInt(); available -= 4;
+
         Operation operation;
         switch (code) {
             case Command.OpenSession:
@@ -233,8 +235,6 @@ public class PacketInputStream extends InputStream {
             default:
                 operation = new Operation(code);
         }
-
-        int transaction = readLEInt(); available -= 4;
 
         //
         // If there are still bytes to read, it means we have additional

@@ -25,7 +25,7 @@ public class OpenSessionOperation extends Operation {
     public final int session;
 
     public OpenSessionOperation() {
-        this(0);
+        this(0x01);
     }
 
 

@@ -80,11 +80,12 @@ public class PacketOutputStream extends BufferedOutputStream {
     public int write(OperationRequest payload) throws IOException {
         int size = writeLEInt(payload.dataPhaseInfo);
         size += writeLEShort(payload.operation.code);
+
+        size += writeLEInt(payload.transaction);
+
         for (int i: payload.operation.getParams()) {
             size += writeLEInt(i);
         }
-
-        size += writeLEInt(payload.transaction);
 
         for (int i: payload.params) {
             size += writeLEInt(i);

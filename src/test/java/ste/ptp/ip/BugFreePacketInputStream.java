@@ -457,8 +457,8 @@ public class BugFreePacketInputStream {
                 //
                 (byte)0x01, (byte)0x20, (byte)0x00, (byte)0x00, // --- data phase info
                 (byte)0x02, (byte)0x10,                         // --- operation code
-                (byte)0x01, (byte)0x00, (byte)0x02, (byte)0x00, // --- session id
-                (byte)0x00, (byte)0x03, (byte)0x00, (byte)0x04  // --- transaction id
+                (byte)0x00, (byte)0x03, (byte)0x00, (byte)0x04, // --- transaction id
+                (byte)0x01, (byte)0x00, (byte)0x02, (byte)0x00  // --- session id
             }
         );
 
